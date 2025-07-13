@@ -15,13 +15,15 @@ PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
 def home():
     return "✅ Bot đang hoạt động!"
 
-@app.route("/webhook", methods=["GET", "POST"])
+@app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
-    if request.method == "GET":
-        token = request.args.get("hub.verify_token")
+    if request.method == 'GET':
+        verify_token = request.args.get("hub.verify_token")
         challenge = request.args.get("hub.challenge")
-        return challenge if token == VERIFY_TOKEN else "Sai verify token", 403
-
+        if verify_token == VERIFY_TOKEN:
+            return challenge, 200
+        else:
+            return "Verification token mismatch", 403
     if request.method == "POST":
         data = request.get_json()
         for entry in data.get("entry", []):

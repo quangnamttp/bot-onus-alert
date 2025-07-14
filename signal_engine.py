@@ -1,45 +1,52 @@
-import requests
-import pandas as pd
-import ta
+# signal_engine.py
+from market_data import get_all_symbols, get_kline, get_rsi, get_price, get_volume
 
-BINANCE_API = "https://api.binance.com"
-
-# ==== LẤY DỮ LIỆU NẾN TỪ BINANCE ====
-def fetch_klines(symbol, interval="15m", limit=100):
-    url = f"{BINANCE_API}/api/v3/klines?symbol={symbol.upper()}USDT&interval={interval}&limit={limit}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        df = pd.DataFrame(data, columns=[
-            "open_time", "open", "high", "low", "close", "volume",
-            "close_time", "quote_volume", "trades", "taker_buy_base", "taker_buy_quote", "ignore"
-        ])
-        df["close"] = df["close"].astype(float)
-        df["volume"] = df["volume"].astype(float)
-        return df
-    return None
-
-# ==== PHÁT HIỆN COIN CÓ TÍN HIỆU VÀO LỆNH ====
 def scan_entry():
-    coin_list = ["BTC", "ETH", "SOL", "SHIB", "PEPE", "XRP", "SUI", "MOG", "APU"]  # Có thể mở rộng
-    for symbol in coin_list:
-        df = fetch_klines(symbol)
-        if df is not None:
-            # Tính RSI và MA20
-            df["rsi"] = ta.momentum.RSIIndicator(close=df["close"]).rsi()
-            df["ma20"] = ta.trend.SMAIndicator(close=df["close"], window=20).sma_indicator()
-            latest_rsi = df["rsi"].iloc[-1]
-            latest_price = df["close"].iloc[-1]
-            latest_ma = df["ma20"].iloc[-1]
-            latest_volume = df["volume"].iloc[-1]
+    """Quét thị trường và trả về các tín hiệu LONG/SHORT tiềm năng"""
+    signals = []
 
-            # Điều kiện tín hiệu vào lệnh: RSI thấp + giá vượt MA + volume cao
-            if latest_rsi < 35 and latest_price > latest_ma and latest_volume > df["volume"].mean():
-                return {
+    for symbol in get_all_symbols():
+        try:
+            candles = get_kline(symbol)
+            rsi = get_rsi(candles)
+            close_price = float(candles[-1][4])
+            ma20 = sum([float(k[4]) for k in candles[-20:]]) / 20
+            volume = get_volume(symbol)
+            signal = None
+
+            # Điều kiện vào lệnh LONG
+            if rsi < 30 and close_price > ma20:
+                signal = {
+                    "type": "LONG",
                     "symbol": symbol,
-                    "entry": round(latest_price, 4),
-                    "rsi": round(latest_rsi, 2),
-                    "ma": round(latest_ma, 4),
-                    "volume": round(latest_volume, 2)
+                    "price": close_price,
+                    "rsi": rsi,
+                    "ma20": round(ma20, 4),
+                    "volume": round(volume, 2),
+                    "tp": round(close_price * 1.05, 4),
+                    "sl": round(close_price * 0.95, 4),
+                    "entry_type": "market"
                 }
-    return None
+
+            # Điều kiện vào lệnh SHORT
+            if rsi > 70 and close_price < ma20:
+                signal = {
+                    "type": "SHORT",
+                    "symbol": symbol,
+                    "price": close_price,
+                    "rsi": rsi,
+                    "ma20": round(ma20, 4),
+                    "volume": round(volume, 2),
+                    "tp": round(close_price * 0.95, 4),
+                    "sl": round(close_price * 1.05, 4),
+                    "entry_type": "market"
+                }
+
+            if signal:
+                signals.append(signal)
+
+        except Exception as e:
+            print(f"🚫 {symbol} lỗi khi phân tích: {e}")
+            continue
+
+    return signals

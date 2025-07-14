@@ -1,59 +1,31 @@
-import datetime
-
 def format_signal(signal):
-    """
-    Định dạng tín hiệu giao dịch kỹ thuật.
-    Bao gồm cảnh báo volume, sát TP/SL, emoji, phân cấp độ mạnh/yếu.
-    """
+    type_emoji = {
+        "LONG": "📈 MUA (LONG)",
+        "SHORT": "📉 BÁN (SHORT)",
+        "NEUTRAL": "⏸️ TRUNG LẬP"
+    }
 
-    # Biểu tượng loại lệnh
-    type_icon = {
-        "LONG": "🟢",
-        "SHORT": "🔴",
-        "NEUTRAL": "⚪"
-    }.get(signal.get("type", "NEUTRAL"))
+    direction = type_emoji.get(signal["type"], "❓")
+    symbol = signal["symbol"]
+    price = f"${signal['price']:.6f}"
+    rsi = f"{signal['rsi']:.2f}"
+    ma20 = f"${signal['ma20']:.6f}"
+    tp = f"${signal['tp']:.6f}"
+    sl = f"${signal['sl']:.6f}"
+    volume = f"{signal['volume']:.2f}"
+    warning = "⚠️ Volume tăng bất thường!" if signal["volume_warn"] else ""
 
-    # Cảnh báo sát TP hoặc SL (khoảng cách nhỏ hơn 1.5%)
-    price = signal["price"]
-    tp = signal["tp"]
-    sl = signal["sl"]
-    near_tp = abs(price - tp) / price < 0.015
-    near_sl = abs(price - sl) / price < 0.015
+    entry_note = f"📌 Lệnh thị trường: {signal['entry_type'].upper()}"
+    tp_sl_note = f"🎯 TP: {tp}\n🛡️ SL: {sl}"
 
-    tp_sl_warn = ""
-    if near_tp:
-        tp_sl_warn = "📈 Giá đang tiến sát TP!"
-    elif near_sl:
-        tp_sl_warn = "⚠️ Giá tiến sát SL!"
-
-    # Cảnh báo volume tăng
-    volume_warn = ""
-    if signal.get("volume_warn", False):
-        volume_warn = "🚨 Volume tăng bất thường!"
-
-    # Đánh giá độ mạnh
-    trend_strength = "📡 Tín hiệu trung bình"
-    rsi = signal["rsi"]
-    if rsi < 20 or rsi > 80:
-        trend_strength = "🔥 Tín hiệu mạnh!"
-    elif rsi < 30 or rsi > 70:
-        trend_strength = "⚡ Có tín hiệu đáng chú ý"
-
-    # Thời gian phân tích (UTC+7)
-    now = datetime.datetime.now(datetime.timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M")
-
-    # Tin nhắn tổng hợp
-    text = (
-        f"{type_icon} *{signal['type']}* tín hiệu cho {signal['symbol']}\n"
-        f"📅 Thời điểm: {now}\n\n"
-        f"💰 Giá vào lệnh: ${signal['price']:.6f}\n"
-        f"🎯 TP: ${tp:.6f} | 📉 SL: ${sl:.6f}\n"
-        f"📊 RSI: {rsi:.2f} | MA20: ${signal['ma20']:.6f}\n"
-        f"🔍 Volume: {signal['volume']:.2f}\n"
-        f"🚀 Lệnh: {signal['entry_type']}\n\n"
-        f"{trend_strength}\n"
-        f"{tp_sl_warn}\n"
-        f"{volume_warn}"
-    ).strip()
-
-    return text
+    message = (
+        f"{direction} cho {symbol}\n"
+        f"------------------------\n"
+        f"🟡 Giá hiện tại: {price}\n"
+        f"📊 RSI: {rsi} | MA20: {ma20}\n"
+        f"💰 Khối lượng: {volume}\n"
+        f"{tp_sl_note}\n"
+        f"{entry_note}\n"
+        f"{warning}"
+    )
+    return message

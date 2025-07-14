@@ -1,31 +1,28 @@
 def format_signal(signal):
-    type_emoji = {
-        "LONG": "📈 MUA (LONG)",
-        "SHORT": "📉 BÁN (SHORT)",
-        "NEUTRAL": "⏸️ TRUNG LẬP"
-    }
-
-    direction = type_emoji.get(signal["type"], "❓")
-    symbol = signal["symbol"]
-    price = f"${signal['price']:.6f}"
-    rsi = f"{signal['rsi']:.2f}"
-    ma20 = f"${signal['ma20']:.6f}"
-    tp = f"${signal['tp']:.6f}"
-    sl = f"${signal['sl']:.6f}"
-    volume = f"{signal['volume']:.2f}"
-    warning = "⚠️ Volume tăng bất thường!" if signal["volume_warn"] else ""
-
-    entry_note = f"📌 Lệnh thị trường: {signal['entry_type'].upper()}"
-    tp_sl_note = f"🎯 TP: {tp}\n🛡️ SL: {sl}"
-
-    message = (
-        f"{direction} cho {symbol}\n"
+    """
+    Trả về chuỗi tin nhắn đẹp mắt cho tín hiệu giao dịch LONG hoặc SHORT.
+    """
+    emoji = "📈" if signal["type"] == "LONG" else "📉"
+    volume_warn = "⚠️ Volume tăng mạnh!" if signal["volume_warn"] else ""
+    
+    return (
+        f"{emoji} Tín hiệu {signal['type']} cho {signal['symbol']}\n"
         f"------------------------\n"
-        f"🟡 Giá hiện tại: {price}\n"
-        f"📊 RSI: {rsi} | MA20: {ma20}\n"
-        f"💰 Khối lượng: {volume}\n"
-        f"{tp_sl_note}\n"
-        f"{entry_note}\n"
-        f"{warning}"
+        f"🟡 Giá hiện tại: ${signal['price']:.6f}\n"
+        f"📊 RSI: {signal['rsi']:.2f} | MA20: ${signal['ma20']:.6f}\n"
+        f"🎯 TP: ${signal['tp']:.6f} | 🛡️ SL: ${signal['sl']:.6f}\n"
+        f"💰 Volume: {signal['volume']:.2f}\n"
+        f"{volume_warn}\n"
+        f"📌 Kiểu lệnh: {signal['entry_type'].upper()}"
     )
-    return message
+
+def format_neutral(symbol, rsi, price, ma20):
+    """
+    Trả về giải thích khi chưa có điểm vào lệnh rõ ràng.
+    """
+    return (
+        f"🤔 {symbol}: Chưa có tín hiệu vào lệnh.\n"
+        f"▪ RSI hiện tại: {rsi:.2f} → chưa vào vùng mua/bán rõ\n"
+        f"▪ Giá: ${price:.6f} chưa vượt MA20 (${ma20:.6f})\n"
+        f"📌 Chờ thêm biến động mạnh hoặc tín hiệu volume để xác nhận điểm vào."
+    )

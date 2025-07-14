@@ -1,7 +1,6 @@
 from flask import Flask, request
 import os
 from dotenv import load_dotenv
-from messenger import send_message
 from market_data import (
     get_kline,
     get_rsi,
@@ -9,7 +8,7 @@ from market_data import (
     get_volume,
     get_all_symbols
 )
-from subscribers import add_subscriber
+from messenger import send_message
 from utils import format_signal
 
 load_dotenv()
@@ -30,19 +29,13 @@ def webhook():
     for entry in data.get("entry", []):
         for msg in entry.get("messaging", []):
             sender_id = msg["sender"]["id"]
-            add_subscriber(sender_id)
-
             if "message" in msg and "text" in msg["message"]:
                 user_text = msg["message"]["text"]
                 symbol = extract_symbol(user_text)
-
                 if symbol:
                     response = analyze_symbol(symbol)
                 else:
-                    response = (
-                        f"🤖 Không tìm thấy token trong: \"{user_text}\"\n"
-                        f"Gõ PEPE, DOGE, OP, LDO… để nhận phân tích kỹ thuật."
-                    )
+                    response = f"🤖 Không nhận diện được token từ: \"{user_text}\"\nGõ PEPE, LDO, DOGE… để nhận phân tích kỹ thuật."
                 send_message(sender_id, response)
     return "ok", 200
 
@@ -56,7 +49,6 @@ def extract_symbol(text):
             if matches:
                 print(f"🔍 Khớp: {word} → {matches[0]}")
                 return matches[0]
-        print(f"❌ Không khớp token nào từ: {text}")
         return None
     except Exception as e:
         print(f"⛔ Lỗi extract_symbol: {e}")
@@ -75,8 +67,6 @@ def analyze_symbol(symbol):
 
         avg_vol = sum([float(k[5]) for k in candles[-5:]]) / 5
         volume_warn = volume > avg_vol * 5
-        if volume_warn:
-            print(f"⚠️ Volume tăng mạnh ở {symbol}: {volume:.2f}")
 
         type_ = (
             "LONG" if rsi < 30 and price > ma20 else
@@ -85,7 +75,7 @@ def analyze_symbol(symbol):
         )
 
         if type_ == "NEUTRAL":
-            return f"🤔 {symbol}: Chưa có xu hướng rõ ràng. RSI: {rsi:.2f} | Giá: ${price:.6f}"
+            return f"🤔 {symbol}: Chưa rõ xu hướng. RSI: {rsi:.2f}, Giá: ${price:.6f}"
 
         tp = price * (1.05 if type_ == "LONG" else 0.95)
         sl = price * (0.95 if type_ == "LONG" else 1.05)
@@ -105,5 +95,4 @@ def analyze_symbol(symbol):
 
         return format_signal(signal)
     except Exception as e:
-        print(f"⛔ Lỗi phân tích {symbol}: {e}")
-        return f"🚫 Lỗi khi xử lý token {symbol}"
+        return f"🚫 Lỗi khi phân tích {symbol}: {e}"

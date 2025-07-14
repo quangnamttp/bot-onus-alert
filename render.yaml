@@ -14,3 +14,17 @@ services:
         value: production
       - key: TZ
         value: Asia/Ho_Chi_Minh
+
+  - type: background
+    name: bot-onus-auto-alert
+    runtime: python
+    region: singapore
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python auto_alert.py"
+    envVars:
+      - key: PAGE_ACCESS_TOKEN
+        value: EAAD...your_facebook_token
+      - key: VERIFY_TOKEN
+        value: onus_bot_verify_key
+      - key: TZ
+        value: Asia/Ho_Chi_Minh

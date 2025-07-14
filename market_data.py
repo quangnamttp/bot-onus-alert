@@ -2,18 +2,18 @@ import requests
 
 BINANCE_URL = "https://api.binance.com"
 
-# ✅ Kiểm tra xem token có tồn tại trên Binance hay không
+# ✅ Kiểm tra token có tồn tại trên Binance
 def check_symbol_exists(symbol):
     try:
         res = requests.get(f"{BINANCE_URL}/api/v3/exchangeInfo", timeout=5)
         data = res.json()
-        available = [s["symbol"] for s in data["symbols"]]
+        available = [s["symbol"] for s in data["symbols"] if s["status"] == "TRADING"]
         return symbol.upper() in available
     except Exception as e:
-        print(f"⛔ Lỗi check symbol: {e}")
+        print(f"⛔ Lỗi check_symbol_exists: {e}")
         return False
 
-# ✅ Lấy dữ liệu nến (K-line) của token
+# ✅ Lấy dữ liệu nến (K-line)
 def get_kline(symbol, interval="1h", limit=100):
     try:
         url = f"{BINANCE_URL}/api/v3/klines"
@@ -24,10 +24,10 @@ def get_kline(symbol, interval="1h", limit=100):
         print(f"⛔ Lỗi get_kline: {e}")
         return []
 
-# ✅ Tính RSI từ dữ liệu nến
+# ✅ Tính RSI (Relative Strength Index)
 def get_rsi(candles, period=14):
     try:
-        closes = [float(k[4]) for k in candles]  # giá đóng cửa
+        closes = [float(k[4]) for k in candles]  # Lấy giá đóng cửa
         gains, losses = [], []
 
         for i in range(1, len(closes)):
@@ -42,7 +42,8 @@ def get_rsi(candles, period=14):
             return 100.0
 
         rs = avg_gain / avg_loss
-        return round(100 - (100 / (1 + rs)), 2)
+        rsi = 100 - (100 / (1 + rs))
+        return round(rsi, 2)
     except Exception as e:
         print(f"⛔ Lỗi get_rsi: {e}")
         return 50.0
@@ -57,24 +58,25 @@ def get_price(symbol):
         print(f"⛔ Lỗi get_price: {e}")
         return 0.0
 
-# ✅ Lấy volume từ cây nến mới nhất
+# ✅ Lấy volume từ cây nến gần nhất
 def get_volume(symbol):
     try:
         candles = get_kline(symbol, interval="1h", limit=2)
         latest = candles[-1]
-        return float(latest[5])  # khối lượng giao dịch
+        return float(latest[5])  # Khối lượng giao dịch
     except Exception as e:
         print(f"⛔ Lỗi get_volume: {e}")
         return 0.0
 
-# ✅ Trả về danh sách tất cả symbol có cặp USDT trên Binance
+# ✅ Lấy toàn bộ symbol có giao dịch USDT
 def get_all_symbols():
     try:
         url = f"{BINANCE_URL}/api/v3/exchangeInfo"
         res = requests.get(url, timeout=5)
         data = res.json()
         symbols = [
-            s["symbol"] for s in data["symbols"]
+            s["symbol"]
+            for s in data["symbols"]
             if s["symbol"].endswith("USDT") and s["status"] == "TRADING"
         ]
         return symbols

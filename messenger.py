@@ -1,41 +1,25 @@
-# messenger.py
 import requests
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
-SEND_API_URL = "https://graph.facebook.com/v17.0/me/messages"
+PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
 
-def send_message(user_id, text):
-    """Gửi tin nhắn văn bản tới người dùng"""
-    headers = {"Content-Type": "application/json"}
-    payload = {
-        "recipient": {"id": user_id},
-        "message": {"text": text},
-        "messaging_type": "RESPONSE",
+def send_message(recipient_id, message_text):
+    url = "https://graph.facebook.com/v17.0/me/messages"
+    params = {
+        "access_token": PAGE_ACCESS_TOKEN
     }
-    requests.post(SEND_API_URL, params={"access_token": ACCESS_TOKEN}, json=payload, headers=headers)
-
-def send_image(user_id, image_url):
-    """Gửi ảnh biểu đồ kỹ thuật tới người dùng"""
-    headers = {"Content-Type": "application/json"}
-    payload = {
-        "recipient": {"id": user_id},
-        "message": {
-            "attachment": {
-                "type": "image",
-                "payload": {
-                    "url": image_url,
-                    "is_reusable": True
-                }
-            }
-        }
+    headers = {
+        "Content-Type": "application/json"
     }
-    requests.post(SEND_API_URL, params={"access_token": ACCESS_TOKEN}, json=payload, headers=headers)
-
-def send_signal_to_all(user_id, message, image_url=None):
-    """Gửi tín hiệu kèm ảnh (nếu có) tới người dùng"""
-    send_message(user_id, message)
-    if image_url:
-        send_image(user_id, image_url)
+    data = {
+        "recipient": {"id": recipient_id},
+        "message": {"text": message_text}
+    }
+    try:
+        res = requests.post(url, params=params, headers=headers, json=data)
+        res.raise_for_status()
+        print(f"✅ Tin nhắn đã gửi: {message_text}")
+    except Exception as e:
+        print(f"⛔ Lỗi gửi tin nhắn: {e}")

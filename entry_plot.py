@@ -1,43 +1,30 @@
-import requests
-import pandas as pd
+# entry_plot.py
 import matplotlib.pyplot as plt
-import ta
-from io import BytesIO
-from PIL import Image
+import numpy as np
+import os
 
-BINANCE_API = "https://api.binance.com"
+def draw_entry_chart(candles, symbol, entry_price, tp=None, sl=None, save_path="entry_chart.png"):
+    """Vẽ biểu đồ giá + MA20 + điểm vào, TP, SL"""
+    closes = [float(k[4]) for k in candles]
+    times = [k[0] for k in candles]
+    ma20 = np.convolve(closes, np.ones(20)/20, mode='valid')
 
-# ==== LẤY DỮ LIỆU NẾN ====
-def fetch_klines(symbol, interval="15m", limit=100):
-    url = f"{BINANCE_API}/api/v3/klines?symbol={symbol.upper()}USDT&interval={interval}&limit={limit}"
-    res = requests.get(url).json()
-    df = pd.DataFrame(res, columns=[
-        "open_time", "open", "high", "low", "close", "volume",
-        "close_time", "quote_volume", "trades", "taker_base", "taker_quote", "ignore"
-    ])
-    df["close"] = df["close"].astype(float)
-    return df
+    plt.figure(figsize=(10, 5))
+    plt.plot(closes, label="Giá đóng cửa", color="blue")
+    plt.plot(range(19, len(closes)), ma20, label="MA20", color="orange")
+    plt.axhline(entry_price, color="green", linestyle="--", label=f"Entry: {entry_price}")
 
-# ==== VẼ BIỂU ĐỒ ENTRY ====
-def plot_entry(symbol):
-    df = fetch_klines(symbol)
-    df["ma20"] = ta.trend.SMAIndicator(df["close"], window=20).sma_indicator()
+    if tp:
+        plt.axhline(tp, color="lime", linestyle=":", label=f"TP: {tp}")
+    if sl:
+        plt.axhline(sl, color="red", linestyle=":", label=f"SL: {sl}")
 
-    plt.style.use("dark_background")
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(df["close"], label="Giá Close", color="cyan", linewidth=2)
-    ax.plot(df["ma20"], label="MA20", color="orange", linestyle="--")
+    plt.title(f"{symbol} Entry Chart")
+    plt.xlabel("Nến 15m gần đây")
+    plt.ylabel("Giá")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
 
-    ax.set_title(f"Biểu đồ {symbol.upper()} — Khung 15 phút", fontsize=16)
-    ax.set_xlabel("Nến gần nhất")
-    ax.set_ylabel("Giá (USDT)")
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-
-    # Xuất ảnh ra buffer
-    buf = BytesIO()
-    plt.savefig(buf, format="PNG", bbox_inches="tight")
-    plt.close(fig)
-    buf.seek(0)
-    image = Image.open(buf)
-    return image
+    return save_path

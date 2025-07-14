@@ -1,48 +1,21 @@
+# auto_alert.py
 import time
 from signal_engine import scan_entry
-import requests
-import os
+from messenger import send_signal_to_all
+from utils import format_signal
+from subscribers import get_subscribers
 
-# ==== DỮ LIỆU FACEBOOK ====
-PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
-
-# ==== ĐỌC DANH SÁCH SUBSCRIBERS ====
-def get_subscribers():
-    try:
-        with open("subscribers.txt", "r") as f:
-            return [line.strip() for line in f.readlines()]
-    except:
-        return []
-
-# ==== GỬI TIN NHẮN FACEBOOK ====
-def send_message(recipient_id, message):
-    url = 'https://graph.facebook.com/v18.0/me/messages'
-    headers = { "Content-Type": "application/json" }
-    payload = {
-        "recipient": { "id": recipient_id },
-        "message": { "text": message },
-        "messaging_type": "UPDATE",
-        "access_token": PAGE_ACCESS_TOKEN
-    }
-    requests.post(url, headers=headers, json=payload)
-
-# ==== CHẠY VÒNG LẶP GỬI TÍN HIỆU ====
 def auto_loop():
+    """Chạy vòng lặp gửi tín hiệu mỗi 15 phút"""
     while True:
-        print("🔄 Đang quét tín hiệu vào lệnh...")
-        signal = scan_entry()
-        if signal:
-            msg = (
-                f"📢 Tín hiệu mới {signal['symbol']}:\n"
-                f"- Giá vào lệnh: ${signal['entry']}\n"
-                f"- RSI: {signal['rsi']}\n"
-                f"- MA20: {signal['ma']}\n"
-                f"- Volume: {signal['volume']:,}\n"
-                f"👉 Có thể cân nhắc vào lệnh nếu phù hợp chiến lược!"
-            )
-            for uid in get_subscribers():
-                send_message(uid, msg)
-            print(f"✅ Đã gửi tín hiệu {signal['symbol']} cho {len(get_subscribers())} người đăng ký.")
+        print("⏱️ Đang quét tín hiệu mới...")
+        signals = scan_entry()
+        if signals:
+            users = get_subscribers()
+            for sig in signals:
+                message = format_signal(sig)
+                for user_id in users:
+                    send_signal_to_all(user_id, message)
         else:
-            print("⛔ Không có tín hiệu phù hợp lúc này.")
-        time.sleep(300)  # Chờ 5 phút rồi quét lại
+            print("🚫 Không có tín hiệu phù hợp trong lần quét này.")
+        time.sleep(900)  # 15 phút = 900 giây

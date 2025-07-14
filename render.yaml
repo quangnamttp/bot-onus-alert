@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: bot-onus-alert
+    runtime: python
+    region: singapore
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: PAGE_ACCESS_TOKEN
+        value: EAAD...your_facebook_token
+      - key: VERIFY_TOKEN
+        value: onus_bot_verify_key
+      - key: FLASK_ENV
+        value: production
+      - key: TZ
+        value: Asia/Ho_Chi_Minh

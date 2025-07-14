@@ -1,31 +1,25 @@
-# utils.py
-def format_price(p):
-    """Làm tròn giá và chuẩn hoá hiển thị"""
-    return f"${round(float(p), 6)}"
+def format_signal(signal):
+    """
+    Định dạng tín hiệu kỹ thuật thành tin nhắn hiển thị đẹp
+    Input: dict signal chứa các thông số kỹ thuật
+    Output: chuỗi văn bản sẵn sàng để gửi qua Messenger
+    """
 
-def emoji_signal(type_):
-    """Emoji phù hợp với loại tín hiệu"""
-    return "🟢" if type_ == "LONG" else "🔴"
+    # Biểu tượng theo loại tín hiệu
+    type_emoji = {
+        "LONG": "🟢",
+        "SHORT": "🔴",
+        "NEUTRAL": "⚪"
+    }.get(signal.get("type", "NEUTRAL"))
 
-def format_signal(sig):
-    """Xây dựng tin nhắn văn bản gửi người dùng"""
-    emoji = emoji_signal(sig["type"])
-    symbol = sig["symbol"].replace("USDT", "")
-    msg = (
-        f"{emoji} Tín hiệu {sig['type']} {symbol}/USDT\n"
-        f"💰 Giá hiện tại: {format_price(sig['price'])}\n"
-        f"📈 RSI: {sig['rsi']} | MA20: {format_price(sig['ma20'])}\n"
-        f"📊 Volume: {sig['volume']}\n"
-        f"📌 Loại lệnh: {sig['entry_type']}\n"
-        f"🎯 TP: {format_price(sig['tp'])} | 🛑 SL: {format_price(sig['sl'])}"
+    # Format nội dung
+    message = (
+        f"{type_emoji} *{signal['type']}* tín hiệu cho {signal['symbol']}\n\n"
+        f"💰 Giá vào lệnh: ${signal['price']:.6f}\n"
+        f"🎯 TP: ${signal['tp']:.6f} | 📉 SL: ${signal['sl']:.6f}\n"
+        f"📊 RSI: {signal['rsi']:.2f} | MA20: ${signal['ma20']:.6f}\n"
+        f"🔍 Volume: {signal['volume']:.2f}\n"
+        f"🚀 Lệnh: {signal['entry_type']}"
     )
-    return msg
 
-def format_time(seconds):
-    """Định dạng thời gian chờ chu kỳ (ví dụ: 15 phút)"""
-    m, s = divmod(seconds, 60)
-    return f"{m}m{s}s"
-
-def is_valid_signal(sig):
-    """Kiểm tra xem tín hiệu có hợp lệ để gửi hay không"""
-    return sig["rsi"] > 0 and sig["volume"] > 0
+    return message

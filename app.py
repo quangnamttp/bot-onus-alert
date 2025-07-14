@@ -11,24 +11,19 @@ from market_data import (
 )
 from subscribers import add_subscriber
 from utils import format_signal
-from signal_engine import scan_entry
 
-# 🔧 Load biến môi trường từ file .env
 load_dotenv()
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
 
-# 🚀 Khởi tạo ứng dụng Flask
 app = Flask(__name__)
 
-# ✅ Route xác thực Facebook webhook
 @app.route("/webhook", methods=["GET"])
 def verify():
     token = request.args.get("hub.verify_token")
     challenge = request.args.get("hub.challenge")
     return challenge if token == VERIFY_TOKEN else "Invalid token", 403
 
-# ✅ Route xử lý tin nhắn từ Messenger
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.get_json()
@@ -46,26 +41,27 @@ def webhook():
                 else:
                     response = (
                         f"🤖 Không tìm thấy token trong: \"{user_text}\"\n"
-                        f"Gõ tên coin như PEPE, DOGE, OP, LDO để nhận phân tích kỹ thuật."
+                        f"Gõ PEPE, DOGE, OP, LDO… để nhận phân tích kỹ thuật."
                     )
-
                 send_message(sender_id, response)
-
     return "ok", 200
 
-# 🧠 Nhận diện token từ nội dung người dùng
 def extract_symbol(text):
     text = text.upper().replace("USDT", "")
     words = text.split()
-    all_symbols = get_all_symbols()
+    try:
+        all_symbols = get_all_symbols()
+        for word in words:
+            matches = [s for s in all_symbols if s.startswith(word)]
+            if matches:
+                print(f"🔍 Khớp: {word} → {matches[0]}")
+                return matches[0]
+        print(f"❌ Không khớp token nào từ: {text}")
+        return None
+    except Exception as e:
+        print(f"⛔ Lỗi extract_symbol: {e}")
+        return None
 
-    for word in words:
-        matches = [s for s in all_symbols if s.startswith(word)]
-        if matches:
-            return matches[0]
-    return None
-
-# 📊 Phân tích kỹ thuật token
 def analyze_symbol(symbol):
     try:
         candles = get_kline(symbol)
@@ -77,11 +73,10 @@ def analyze_symbol(symbol):
         volume = get_volume(symbol)
         ma20 = sum([float(k[4]) for k in candles[-20:]]) / 20
 
-        # 🔥 Cảnh báo volume
         avg_vol = sum([float(k[5]) for k in candles[-5:]]) / 5
         volume_warn = volume > avg_vol * 5
         if volume_warn:
-            print(f"⚠️ Volume tăng đột biến ở {symbol}: {volume:.2f}")
+            print(f"⚠️ Volume tăng mạnh ở {symbol}: {volume:.2f}")
 
         type_ = (
             "LONG" if rsi < 30 and price > ma20 else
@@ -109,7 +104,6 @@ def analyze_symbol(symbol):
         }
 
         return format_signal(signal)
-
     except Exception as e:
         print(f"⛔ Lỗi phân tích {symbol}: {e}")
         return f"🚫 Lỗi khi xử lý token {symbol}"

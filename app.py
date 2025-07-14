@@ -1,105 +1,82 @@
-import os
-import requests
+# app.py
 from flask import Flask, request
-import re
+import os
+from dotenv import load_dotenv
+from messenger import send_message
+from market_data import get_kline, get_rsi, get_price, get_volume
+from subscribers import add_subscriber
+from utils import format_signal
+from signal_engine import scan_entry
+
+load_dotenv()
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 
 app = Flask(__name__)
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "peacelayer1")
-PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
 
-# ==== GỬI TIN NHẮN ====
-def send_message(recipient_id, message):
-    url = 'https://graph.facebook.com/v18.0/me/messages'
-    headers = { "Content-Type": "application/json" }
-    payload = {
-        "recipient": { "id": recipient_id },
-        "message": { "text": message },
-        "messaging_type": "RESPONSE",
-        "access_token": PAGE_ACCESS_TOKEN
-    }
-    requests.post(url, headers=headers, json=payload)
+@app.route("/", methods=["GET"])
+def verify():
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+    return challenge if token == VERIFY_TOKEN else "Invalid token"
 
-# ==== LẤY GIÁ TỪ BINANCE ====
-def get_binance_data(symbol):
-    url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={symbol.upper()}USDT"
-    res = requests.get(url)
-    if res.status_code == 200:
-        data = res.json()
-        return {
-            "price": float(data["lastPrice"]),
-            "change": float(data["priceChangePercent"]),
-            "volume": float(data["quoteVolume"])
-        }
+@app.route("/", methods=["POST"])
+def webhook():
+    data = request.get_json()
+    for entry in data.get("entry", []):
+        for msg in entry.get("messaging", []):
+            sender_id = msg["sender"]["id"]
+
+            # Ghi nhận người dùng đã nhắn → kích hoạt nếu like fanpage
+            add_subscriber(sender_id)
+
+            if "message" in msg and "text" in msg["message"]:
+                user_text = msg["message"]["text"].lower()
+                symbol = extract_symbol(user_text)
+                if symbol:
+                    response = analyze_symbol(symbol)
+                else:
+                    response = "📌 Bot ONUS sẵn sàng! Gõ tên coin (VD: FLOKI) để nhận phân tích."
+                send_message(sender_id, response)
+
+    return "ok", 200
+
+def extract_symbol(text):
+    """Tìm tên token trong tin nhắn của người dùng"""
+    text = text.upper().replace("USDT", "")
+    tokens = ["FLOKI", "SUI", "SOL", "BTC", "ETH"]  # Có thể mở rộng thêm
+    for t in tokens:
+        if t in text:
+            return t + "USDT"
     return None
 
-# ==== WEBHOOK FACEBOOK ====
-@app.route('/webhook', methods=['GET', 'POST'])
-def webhook():
-    if request.method == 'GET':
-        token = request.args.get("hub.verify_token")
-        challenge = request.args.get("hub.challenge")
-        return challenge if token == VERIFY_TOKEN else "Sai token", 403
+def analyze_symbol(symbol):
+    """Phân tích kỹ thuật nhanh theo tên coin được hỏi"""
+    try:
+        candles = get_kline(symbol)
+        rsi = get_rsi(candles)
+        price = get_price(symbol)
+        volume = get_volume(symbol)
+        ma20 = sum([float(k[4]) for k in candles[-20:]]) / 20
 
-    elif request.method == 'POST':
-        data = request.get_json()
-        for entry in data.get("entry", []):
-            for event in entry.get("messaging", []):
-                sender = event.get("sender", {}).get("id")
-                message = event.get("message", {}).get("text")
-                if sender and message:
-                    handle_message(sender, message)
-        return "OK", 200
+        type_ = "LONG" if rsi < 30 and price > ma20 else "SHORT" if rsi > 70 and price < ma20 else "NEUTRAL"
 
-# ==== XỬ LÝ TIN NHẮN ====
-def handle_message(sender_id, text):
-    cleaned = text.strip().lower()
-    match = re.search(r'\b([a-zA-Z0-9]{2,10})\b', cleaned)
+        if type_ == "NEUTRAL":
+            return f"🤔 {symbol}: Chưa rõ xu hướng mạnh. RSI: {rsi} | Giá: ${price:.6f}"
 
-    if match:
-        symbol = match.group(1).upper()
-        send_message(sender_id, f"⏳ Đang kiểm tra dữ liệu {symbol}...")
-        info = get_binance_data(symbol)
-        if info:
-            if "giá" in cleaned or "bao nhiêu" in cleaned:
-                reply = (
-                    f"📊 {symbol} hiện tại:\n"
-                    f"- Giá: ${info['price']:,}\n"
-                    f"- Biến động 24h: {info['change']:.2f}%\n"
-                    f"- Volume: ${info['volume']:,}"
-                )
-            elif "vào lệnh" in cleaned or "có vào được không" in cleaned:
-                # Giả sử entry hợp lý khi biến động > 3% và volume cao
-                if info['change'] > 3 and info['volume'] > 10000000:
-                    reply = (
-                        f"✅ {symbol} đang có tín hiệu mạnh:\n"
-                        f"- Giá hiện tại: ${info['price']:,}\n"
-                        f"- Biến động 24h: {info['change']:.2f}%\n"
-                        f"- Volume: ${info['volume']:,}\n"
-                        f"👉 Có thể cân nhắc vào lệnh nếu phù hợp chiến lược!"
-                    )
-                else:
-                    reply = (
-                        f"⚠️ {symbol} chưa có tín hiệu rõ ràng:\n"
-                        f"- Giá: ${info['price']:,}\n"
-                        f"- Biến động 24h: {info['change']:.2f}%\n"
-                        f"- Volume: ${info['volume']:,}\n"
-                        f"👉 Nên chờ thêm xác nhận hoặc volume mạnh hơn."
-                    )
-            else:
-                reply = (
-                    f"📊 {symbol} hiện tại:\n"
-                    f"- Giá: ${info['price']:,}\n"
-                    f"- Biến động 24h: {info['change']:.2f}%\n"
-                    f"- Volume: ${info['volume']:,}"
-                )
-        else:
-            reply = f"❌ Không tìm thấy dữ liệu cho `{symbol}` trên Binance."
-    else:
-        reply = (
-            "🤖 Bạn có thể hỏi:\n"
-            "- 'BTC giá bao nhiêu?'\n"
-            "- 'SHIB có vào được không?'\n"
-            "- 'SOL có nên vào lệnh không?'"
-        )
+        tp = price * (1.05 if type_ == "LONG" else 0.95)
+        sl = price * (0.95 if type_ == "LONG" else 1.05)
+        signal = {
+            "type": type_,
+            "symbol": symbol,
+            "price": price,
+            "rsi": rsi,
+            "ma20": ma20,
+            "volume": volume,
+            "tp": tp,
+            "sl": sl,
+            "entry_type": "market"
+        }
+        return format_signal(signal)
 
-    send_message(sender_id, reply)
+    except Exception as e:
+        return f"🚫 Lỗi khi phân tích {symbol}: {e}"

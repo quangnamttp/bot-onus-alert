@@ -1,8 +1,0 @@
-requests
-flask
-python-dotenv
-schedule
-matplotlib
-numpy
-pandas
-gunicorn

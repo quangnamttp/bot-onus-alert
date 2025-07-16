@@ -1,6 +1,6 @@
+flask
 requests
+pandas
 schedule
 python-dotenv
-pandas
 emoji
-flask

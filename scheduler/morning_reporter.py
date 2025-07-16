@@ -1,11 +1,9 @@
-# morning_reporter.py
-
 def morning_brief(coin, exchange):
-    mood = "Tăng nhẹ do tín hiệu hồi phục từ thị trường Mỹ" if coin.lower() in ["btc", "eth", "sol"] else "Giảm nhẹ do áp lực bán từ phiên Á"
+    mood = "tăng nhẹ do tín hiệu hồi phục" if coin.lower() in ["btc", "eth", "sol"] else "giảm do áp lực bán"
     return (
-        f"🌅 Chào buổi sáng trader!\n"
-        f"📍 Sàn: {exchange} | Coin: {coin.upper()}\n\n"
-        f"📊 Dự báo: Thị trường hôm nay có khả năng {mood}\n"
-        f"📌 Lưu ý: Theo dõi lịch kinh tế & dòng tiền bất thường\n"
-        f"🧠 Chiến lược gợi ý: Ưu tiên Scalp khung ngắn (M15–H1)"
+        f"🌅 Chào buổi sáng!\n"
+        f"Sàn: {exchange} | Coin: {coin.upper()}\n\n"
+        f"📊 Dự báo: Thị trường hôm nay có thể {mood}\n"
+        "⚠️ Theo dõi lịch kinh tế lúc 7h\n"
+        "🎯 Ưu tiên Scalp khung M15 nếu volume ổn định"
     )

@@ -1,23 +1,24 @@
-from entry_generator import generate_trade_entries
-from trend_after_news import analyze_news_impact
-from utils import send_message
-from test_runner import run_full_test
+# main.py
 
-def main():
-    print("🚀 Cofure Bot v1.4 khởi động...")
+from userflow.exchange_selector import ExchangeSelector
+from userflow.coin_listener import CoinListener
+
+def start_bot():
+    print("🚀 Cofure Bot khởi động...")
+    exchange = ExchangeSelector()
+    coin = CoinListener()
+
+    print(f"🟢 Sàn mặc định: {exchange.get_current_exchange()}")
+    print("📌 Bot đang đợi người dùng chọn coin để phân tích...")
+
+    # Ví dụ nhập coin & sàn từ người dùng
+    user_san = input("Bạn chọn sàn nào? ").strip()
+    print(exchange.update_exchange(user_san))
     
-    # Gửi tín hiệu giao dịch
-    trade_signals = generate_trade_entries()
-    for signal in trade_signals:
-        send_message(signal)
+    user_coin = input("Bạn muốn phân tích coin nào? ").strip()
+    print(coin.update_coin(user_coin))
 
-    # Phân tích xu hướng sau tin tức (nếu có)
-    news_analysis = analyze_news_impact()
-    if news_analysis:
-        send_message(news_analysis)
-
-    # Khởi chạy kiểm thử toàn hệ thống
-    run_full_test()
+    print(f"🔎 Phân tích đang chuẩn bị cho: Coin {coin.get_current_coin()} trên sàn {exchange.get_current_exchange()}")
 
 if __name__ == "__main__":
-    main()
+    start_bot()

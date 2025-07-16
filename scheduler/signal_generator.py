@@ -1,5 +1,3 @@
-# signal_generator.py
-
 import random
 from core.signal_analyzer import SignalAnalyzer
 from core.strategy_classifier import classify_strategy
@@ -10,21 +8,16 @@ def generate_signal(coin, exchange):
     indicators = analyzer.fetch_indicators()
     ma_position = "trên" if "trên" in indicators["MA"] else "dưới"
     strategy = classify_strategy(indicators["RSI"], ma_position, indicators["Volume"])
-    
-    entry = round(random.uniform(1.0, 100.0), 2)
+
+    entry = round(random.uniform(5.0, 100.0), 2)
     target = round(entry * 1.036, 2)
     stoploss = round(entry * 0.983, 2)
-    
     rr = evaluate_risk(entry, stoploss)
-    vn_price = f"{entry * 24350:,.0f} VNĐ"
 
     return (
         f"✅ #{coin.upper()} — {'LONG' if random.choice([True, False]) else 'SHORT'}\n"
-        f"📍 Sàn: {exchange} | Khung giờ: M15\n\n"
+        f"Sàn: {exchange} | Khung: M15\n\n"
         f"{analyzer.format_analysis()}\n\n"
-        f"🎯 Entry: ${entry} ≈ {vn_price}\n"
-        f"🎯 Target: ${target}\n"
-        f"🛡️ Stop-Loss: ${stoploss}\n\n"
-        f"📌 Chiến lược giao dịch: {strategy}\n{rr}"
+        f"🎯 Entry: ${entry} | Target: ${target} | SL: ${stoploss}\n"
+        f"📌 Chiến lược: {strategy}\n{rr}"
     )
-

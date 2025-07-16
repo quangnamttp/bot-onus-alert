@@ -1,16 +1,12 @@
-# night_summary.py
-
 def nightly_summary(trade_stats):
-    long_count = trade_stats.get("long", 0)
-    short_count = trade_stats.get("short", 0)
-    total = long_count + short_count
-    long_ratio = round(long_count / total * 100, 1) if total else 0
+    long = trade_stats.get("long", 0)
+    short = trade_stats.get("short", 0)
+    total = long + short
+    long_ratio = round(long / total * 100, 1) if total else 0
 
     return (
-        "🌙 Chúc ngủ ngon trader!\n\n"
-        f"📊 Tổng kết hôm nay:\n"
-        f"→ Lệnh Long: {long_count} | Short: {short_count}\n"
-        f"→ Tỷ lệ Long: {long_ratio}%\n\n"
-        "🧠 Gợi ý: Kiểm tra lệnh còn mở trước khi qua phiên\n"
-        "🔔 Theo dõi bản tin sáng mai lúc 06h00!"
+        "🌙 Chúc ngủ ngon!\n"
+        f"📊 Lệnh hôm nay: Long: {long} | Short: {short}\n"
+        f"→ Tỷ lệ Long: {long_ratio}%\n"
+        "🔔 Theo dõi bản tin sáng mai lúc 06:00 để chuẩn bị phiên mới!"
     )

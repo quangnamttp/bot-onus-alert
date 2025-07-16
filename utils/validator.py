@@ -1,10 +1,16 @@
 # validator.py
 
+from config import SUPPORTED_EXCHANGES, BLOCKED_COINS
+
 def is_valid_coin(coin):
+    """
+    Kiểm tra xem coin có hợp lệ không (không phải mã rác, mã đòn bẩy)
+    """
     coin = coin.upper()
-    blocked = ["BTCUP", "BTCDOWN", "ETH3L", "ETH3S", "SHIB1000"]
-    return coin.isalnum() and coin not in blocked
+    return coin.isalnum() and coin not in BLOCKED_COINS
 
 def is_valid_exchange(exchange):
-    valid = ["Binance", "OKX", "MEXC", "Nami", "Onus", "Bybit"]
-    return exchange.capitalize() in valid
+    """
+    Kiểm tra xem sàn có nằm trong danh sách được hỗ trợ không
+    """
+    return exchange.capitalize() in SUPPORTED_EXCHANGES

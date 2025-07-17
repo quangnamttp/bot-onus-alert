@@ -1,7 +1,4 @@
-# version_handler.py
+__version__ = "1.5.0"
 
-def get_bot_version():
-    return "Cofure v1.5"
-
-def is_latest_version(current_version):
-    return current_version == get_bot_version()
+def show_version():
+    print(f"📌 Phiên bản bot Cofure: v{__version__}")

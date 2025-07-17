@@ -7,20 +7,22 @@ def get_user_exchange(psid):
             return config.get(psid, {}).get("exchange", "onus")
     except: return "onus"
 
-def get_price(psid):
+def get_price(psid, symbol="BTCUSDT"):
     exchange = get_user_exchange(psid)
     if exchange == "onus":
-        return get_onus_price("BTCUSDT")
+        return get_onus_price(symbol)
     elif exchange == "nami":
-        return get_nami_price("BTCUSDT")
+        return get_nami_price(symbol)
     return 0
 
 def get_onus_price(symbol):
-    r = requests.get(f"https://api.goonus.io/v1/markets/{symbol}")
-    try: return float(r.json()["data"]["price"])
+    try:
+        r = requests.get(f"https://api.goonus.io/v1/markets/{symbol}")
+        return float(r.json()["data"]["price"])
     except: return 0
 
 def get_nami_price(symbol):
-    r = requests.get(f"https://api.nami.exchange/api/v1/ticker?symbol={symbol}")
-    try: return float(r.json()["price"])
+    try:
+        r = requests.get(f"https://api.nami.exchange/api/v1/ticker?symbol={symbol}")
+        return float(r.json()["price"])
     except: return 0

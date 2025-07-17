@@ -14,7 +14,8 @@ def send_message(content, platform="Messenger"):
         headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
         for psid in load_recipients():
-            price = get_price(psid)  # lấy giá theo sàn người dùng
-            payload = {"recipient": {"id": psid}, "message": {"text": content.replace("{price}", str(price))}}
+            price = get_price(psid)  # Lấy giá theo sàn của người dùng
+            message = content.replace("{price}", f"{price:,}")
+            payload = {"recipient": {"id": psid}, "message": {"text": message}}
             r = requests.post(url, json=payload, headers=headers)
             print(f"📤 Sent to {psid}: {r.status_code}")

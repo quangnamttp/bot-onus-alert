@@ -16,10 +16,12 @@ def send_message(content, platform="Messenger"):
         token = os.getenv("FB_PAGE_TOKEN")
         url = "https://graph.facebook.com/v17.0/me/messages"
         headers = {
-            "Authorization": f"Bearer " + token,
+            "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
         }
-        for psid in load_recipients():
+
+        recipients = load_recipients()
+        for psid in recipients:
             payload = {
                 "recipient": {"id": psid},
                 "message": {"text": content}

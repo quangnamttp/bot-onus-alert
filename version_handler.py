@@ -1,4 +1,2 @@
-__version__ = "1.5.0"
-
 def show_version():
-    print(f"📌 Phiên bản bot Cofure: v{__version__}")
+    print("🧠 Cofure Bot v2.5 | Messenger Mode Activated")

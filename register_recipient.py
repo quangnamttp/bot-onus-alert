@@ -21,16 +21,22 @@ def receive():
 
 def update_list(psid):
     try:
-        with open("recipient_list.json") as f: data = json.load(f)
-    except: data = {"recipients": []}
+        with open("recipient_list.json") as f:
+            data = json.load(f)
+    except:
+        data = {"recipients": []}
     if psid not in data["recipients"]:
         data["recipients"].append(psid)
-        with open("recipient_list.json", "w") as f: json.dump(data, f, indent=2)
+        with open("recipient_list.json", "w") as f:
+            json.dump(data, f, indent=2)
 
 def setup_exchange(psid):
     try:
-        with open("user_config.json") as f: config = json.load(f)
-    except: config = {}
+        with open("user_config.json") as f:
+            config = json.load(f)
+    except:
+        config = {}
     if psid not in config:
-        config[psid] = {"exchange": "onus"}  # Mặc định là ONUS
-        with open("user_config.json", "w") as f: json.dump(config, f, indent=2)
+        config[psid] = {"exchange": "onus"}
+        with open("user_config.json", "w") as f:
+            json.dump(config, f, indent=2)

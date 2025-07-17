@@ -1,1 +1,1 @@
-web: python mess_handler.py
+worker: python main.py

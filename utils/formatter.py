@@ -1,12 +1,8 @@
-# formatter.py
+def format_price(price):
+    return f"{price:,.0f} VND"
 
-def format_price(value):
-    return f"${value:,.2f}"
+def format_percent(value):
+    return f"{round(value * 100, 1)}%"
 
-def format_vnd(value_usd, rate=24350):
-    return f"{round(value_usd * rate):,} VNĐ"
-
-def format_rr(entry, stoploss):
-    distance = abs(entry - stoploss)
-    rr = round((entry * 1.036 - entry) / distance, 2)
-    return rr
+def format_rr(ratio):
+    return f"{round(ratio, 2)}"

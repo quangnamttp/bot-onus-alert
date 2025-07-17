@@ -1,14 +1,20 @@
-# market_snapshot.py
-
-from marketdata.price_fetcher import fetch_price
-
-def get_market_snapshot(coins):
-    """
-    Trả về bảng giá của danh sách coin hiện tại
-    """
-    snapshot = []
-    for coin in coins:
-        price = fetch_price(coin)
-        if price:
-            snapshot.append(f"💹 {coin.upper()}: {price}$")
-    return snapshot
+def get_market_data():
+    # ⚠️ Giả lập — sau này gọi từ API hoặc file cache
+    return [
+        {
+            "symbol": "BTCUSDT",
+            "price": 1548000000,
+            "volume": 300000,
+            "rsi": 48,
+            "funding": -0.008,
+            "change": 3.7
+        },
+        {
+            "symbol": "ETHUSDT",
+            "price": 90500000,
+            "volume": 180000,
+            "rsi": 52,
+            "funding": 0.015,
+            "change": 2.3
+        }
+    ]

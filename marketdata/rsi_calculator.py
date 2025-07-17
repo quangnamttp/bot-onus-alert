@@ -1,21 +1,12 @@
-# rsi_calculator.py
+def calc_rsi(prices, period=14):
+    gains, losses = [], []
+    for i in range(1, len(prices)):
+        change = prices[i] - prices[i - 1]
+        gains.append(max(0, change))
+        losses.append(max(0, -change))
 
-import pandas as pd
-
-def calculate_rsi(prices, period=14):
-    """
-    Tính RSI từ danh sách giá đóng cửa
-    """
-    df = pd.DataFrame(prices, columns=["close"])
-    delta = df["close"].diff()
-
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
-
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
-
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period if sum(losses[:period]) != 0 else 1
     rs = avg_gain / avg_loss
     rsi = 100 - (100 / (1 + rs))
-
-    return round(rsi.iloc[-1], 2)
+    return round(rsi, 1)

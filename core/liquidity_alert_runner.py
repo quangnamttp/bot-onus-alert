@@ -1,11 +1,5 @@
-# liquidity_alert_runner.py
-
-from marketdata.liquidity_detector import detect_liquidity_spike
-
-def check_liquidity_batch(coins):
-    alerts = []
-    for coin in coins:
-        alert = detect_liquidity_spike(coin)
-        if alert:
-            alerts.append(alert)
-    return alerts
+def check_liquidity_zone(price, zones):
+    for z in zones:
+        if abs(price - z) / price < 0.01:
+            return "💧 Gần vùng thanh khoản"
+    return ""

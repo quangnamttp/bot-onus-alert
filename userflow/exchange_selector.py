@@ -1,22 +1,21 @@
-from utils.validator import is_valid_exchange
-from config import SUPPORTED_EXCHANGES
+import json
 
-class ExchangeSelector:
-    def __init__(self):
-        self.selected_exchange = "Onus"  # sàn mặc định
+def get_exchange(psid):
+    try:
+        with open("user_config.json") as f:
+            config = json.load(f)
+        return config.get(psid, {}).get("exchange", "onus")
+    except:
+        return "onus"
 
-    def get_current_exchange(self):
-        return self.selected_exchange
-
-    def list_supported_exchanges(self):
-        return SUPPORTED_EXCHANGES
-
-    def update_exchange(self, user_input):
-        formatted = user_input.strip().capitalize()
-        if is_valid_exchange(formatted):
-            self.selected_exchange = formatted
-            return f"✅ Sàn giao dịch đã cập nhật: {self.selected_exchange}"
-        return (
-            f"❌ Sàn '{user_input}' không được hỗ trợ\n"
-            f"→ Các sàn hợp lệ gồm: {', '.join(SUPPORTED_EXCHANGES)}"
-        )
+def set_exchange(psid, exchange):
+    try:
+        with open("user_config.json") as f:
+            config = json.load(f)
+    except:
+        config = {}
+    if psid not in config:
+        config[psid] = {}
+    config[psid]["exchange"] = exchange
+    with open("user_config.json", "w") as f:
+        json.dump(config, f, indent=2)

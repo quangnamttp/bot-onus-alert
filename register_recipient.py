@@ -14,8 +14,9 @@ def receive():
     try:
         psid = request.get_json()["entry"][0]["messaging"][0]["sender"]["id"]
         update_list(psid)
-        update_config(psid)  # Cài sàn mặc định là ONUS
-    except: pass
+        setup_exchange(psid)
+    except Exception as e:
+        print(f"⚠️ Cannot extract PSID: {e}")
     return "ok", 200
 
 def update_list(psid):
@@ -26,9 +27,10 @@ def update_list(psid):
         data["recipients"].append(psid)
         with open("recipient_list.json", "w") as f: json.dump(data, f, indent=2)
 
-def update_config(psid):
+def setup_exchange(psid):
     try:
         with open("user_config.json") as f: config = json.load(f)
     except: config = {}
-    config[psid] = {"exchange": "onus"}
-    with open("user_config.json", "w") as f: json.dump(config, f, indent=2)
+    if psid not in config:
+        config[psid] = {"exchange": "onus"}  # Mặc định là ONUS
+        with open("user_config.json", "w") as f: json.dump(config, f, indent=2)

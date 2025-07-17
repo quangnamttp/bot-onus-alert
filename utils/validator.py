@@ -1,16 +1,9 @@
-# validator.py
+def validate_signal(signal):
+    required_keys = ["symbol", "entry", "sl", "tp", "strategy", "rr"]
+    return all(k in signal and signal[k] is not None for k in required_keys)
 
-from config import SUPPORTED_EXCHANGES, BLOCKED_COINS
+def validate_price(price):
+    return isinstance(price, (int, float)) and price > 0
 
-def is_valid_coin(coin):
-    """
-    Kiểm tra xem coin có hợp lệ không (không phải mã rác, mã đòn bẩy)
-    """
-    coin = coin.upper()
-    return coin.isalnum() and coin not in BLOCKED_COINS
-
-def is_valid_exchange(exchange):
-    """
-    Kiểm tra xem sàn có nằm trong danh sách được hỗ trợ không
-    """
-    return exchange.capitalize() in SUPPORTED_EXCHANGES
+def validate_percent(value):
+    return isinstance(value, float) and 0 <= value <= 1

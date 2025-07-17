@@ -1,13 +1,6 @@
-# risk_evaluator.py
-
-def evaluate_risk(entry, stoploss):
-    distance = abs(entry - stoploss)
-    rr_ratio = round((entry * 1.03 - entry) / distance, 2)
-    if rr_ratio >= 2.0:
-        risk = "Rủi ro thấp – RR tốt"
-    elif rr_ratio >= 1.5:
-        risk = "Rủi ro trung bình"
-    else:
-        risk = "Rủi ro cao"
-    return f"📊 Tỷ lệ RR: {rr_ratio} | Đánh giá: {risk}"
-
+def evaluate_risk(rsi, volume, funding):
+    score = 0
+    if rsi < 30 or rsi > 70: score += 1
+    if volume < 200000: score += 1
+    if abs(funding) > 0.03: score += 1
+    return score  # 0 = an toàn, 3 = rủi ro cao

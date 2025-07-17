@@ -1,10 +1,15 @@
-# emoji_map.py
+EMOJI_SIGNAL = {
+    "Scalping": "⚡",
+    "Swing": "📈",
+    "Market": "🔥",
+    "Reference": "📌",
+    "Ready": "✅",
+    "Liquid": "💧"
+}
 
-def get_coin_emoji(coin):
-    emojis = {
-        "BTC": "₿", "ETH": "⚙️", "SOL": "🔥", "XRP": "💧", "DOGE": "🐶"
-    }
-    return emojis.get(coin.upper(), "📈")
-
-def get_strategy_emoji(strategy):
-    return "⚡" if "Scalp" in strategy else "🕰️"
+EMOJI_RISK = {
+    0: "🟢 An toàn",
+    1: "🟡 Rủi ro nhẹ",
+    2: "🟠 Trung bình",
+    3: "🔴 Rủi ro cao"
+}

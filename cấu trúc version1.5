@@ -1,56 +1,59 @@
 cofure_bot/
 ├── main.py                        # 🚀 Khởi động bot & quy trình gửi tín hiệu
 ├── version_handler.py             # 🧠 Ghi chú phiên bản bot Cofure
-├── config.py                      # ⚙️ Tùy chọn chiến thuật, nhóm coin
+├── config.py                      # ⚙️ Tùy chọn chiến thuật, nhóm coin, đơn vị giá VND
 ├── requirements.txt               # 📦 Thư viện cần thiết (requests, flask…)
-├── Procfile                       # 🛠 Dành cho Render để chạy bot
-├── README.md                      # 📘 Hướng dẫn triển khai
-├── risk_manager.py                # 📊 Tính toán SL/TP/R:R
-├── mess_handler.py                # 💬 Gửi tin nhắn qua Messenger đến nhiều người
-├── .env.example                   # 🔐 Biến môi trường (FB_PAGE_TOKEN, VERIFY_TOKEN)
+├── Procfile                       # 🛠 Dành cho Render/Heroku để chạy bot
+├── README.md                      # 📘 Hướng dẫn triển khai bot & sơ đồ hệ thống
+├── risk_manager.py                # 📊 Tính toán SL/TP/R:R dựa trên giá VND
+├── mess_handler.py                # 💬 Gửi tin nhắn Messenger đến nhiều người dùng
+├── .env.example                   # 🔐 Biến môi trường (FB_PAGE_TOKEN, VERIFY_TOKEN...)
 │
 ├── userflow/
-│   ├── coin_listener.py           # 👁 Theo dõi nhóm coin người dùng chọn
-│   └── exchange_listener.py       # 🔁 Lấy dữ liệu sàn — trùng `price_fetcher.py`
+│   ├── coin_listener.py           # 👁 Quản lý danh sách coin người dùng theo dõi
+│   └── exchange_listener.py       # 🔁 Lấy dữ liệu sàn người dùng đã chọn
 │
 ├── core/
-│   ├── entry_checker.py           # ✅ Kiểm tra điều kiện đủ để gửi tín hiệu
-│   ├── multi_signal_manager.py    # 📌 Quản lý lệnh "Tham khảo"
-│   ├── liquidity_alert_runner.py  # 💧 Cảnh báo vùng thanh khoản
-│   ├── coin_filter.py             # 🧹 Lọc các coin cần gửi
-│   ├── signal_analyzer.py         # 📊 Xử lý volume, funding, RSI
+│   ├── signal_generator.py        # 🏹 Tạo tín hiệu trade mới theo volume/funding/RSI
+│   ├── entry_checker.py           # ✅ Kiểm tra điều kiện đủ để gửi lệnh
+│   ├── multi_signal_manager.py    # 📌 Quản lý các lệnh "Tham khảo" (low confidence)
+│   ├── liquidity_alert_runner.py  # 💧 Cảnh báo vùng thanh khoản cao
+│   ├── coin_filter.py             # 🧹 Lọc coin rác (volume thấp, niêm yết hẹp)
+│   ├── signal_analyzer.py         # 📊 Phân tích RSI, funding, volume tổng hợp
 │   ├── strategy_classifier.py     # 🧠 Gắn chiến thuật Scalping / Swing
-│   └── risk_evaluator.py          # ⚠️ Ước lượng rủi ro
+│   └── risk_evaluator.py          # ⚠️ Ước lượng độ rủi ro
 │
 ├── scheduler/
-│   ├── schedule_trigger.py        # ⏱ Lập lịch gửi tín hiệu
-│   ├── cron_daemon.py             # 🧭 Kích hoạt lịch theo giờ
-│   ├── auto_reporter.py           # 📄 Báo cáo lệnh cuối ngày
+│   ├── schedule_trigger.py        # ⏱ Lập lịch gửi lệnh theo chu kỳ 15–30 phút
+│   ├── cron_daemon.py             # 🧭 Kích hoạt lịch theo khung giờ hệ thống
+│   ├── auto_reporter.py           # 📄 Báo cáo tổng kết cuối ngày
 │   ├── morning_reporter.py        # 🌞 Gửi bản tin sáng lúc 06:00
-│   ├── signal_generator.py        # 🏹 Tạo tín hiệu trade mới
-│   ├── event_watcher.py           # 🔔 Theo dõi tin tức vĩ mô
-│   ├── night_summary.py           # 🌙 Reset dữ liệu lúc 23:00
+│   ├── signal_generator.py        # 🏹 Kích hoạt quá trình tạo lệnh
+│   ├── event_watcher.py           # 🔔 Theo dõi tin tức vĩ mô (CPI, FOMC, NFP...)
+│   ├── night_summary.py           # 🌙 Reset dữ liệu & setup ngày mới lúc 23:00
 │
 ├── marketdata/
-│   ├── price_fetcher.py           # 📈 Lấy giá coin mới nhất
-│   ├── liquidity_detector.py      # 💧 Dò vùng thanh khoản
-│   ├── volume_tracker.py          # 🔎 Theo dõi volume
-│   ├── rsi_calculator.py          # 📐 Tính RSI coin
-│   └── market_snapshot.py         # 🖼 Snapshot thị trường → có thể chuyển sandbox
+│   ├── price_fetcher.py           # 📈 Lấy giá coin mới nhất theo sàn & chuyển về VND
+│   ├── liquidity_detector.py      # 💧 Phân tích vùng thanh khoản
+│   ├── volume_tracker.py          # 🔎 Theo dõi volume từng coin
+│   ├── rsi_calculator.py          # 📐 Tính RSI trên khung giờ chọn
+│   └── market_snapshot.py         # 🖼 Snapshot trạng thái thị trường thời gian thực
 │
 ├── report/
-│   └── end_day_report.py          # 📊 Tổng hợp bản tin cuối ngày
+│   └── end_day_report.py          # 📊 Tổng hợp tin cuối ngày: thống kê lệnh + R:R
 │
 ├── messages/
-│   ├── templates.py               # ✉️ Format tin nhắn cảnh báo/lệnh
-│   └── emoji_map.py               # 😀 Map emoji trạng thái/tín hiệu
+│   ├── templates.py               # ✉️ Format nội dung lệnh (entry, SL, TP, chiến thuật)
+│   └── emoji_map.py               # 😀 Map emoji cho trạng thái lệnh & cảnh báo
 │
 ├── utils/
-│   ├── formatter.py               # 🔢 Định dạng giá, VND, phần trăm
+│   ├── formatter.py               # 🔢 Định dạng số, giá VND, phần trăm
 │   └── validator.py               # ✅ Kiểm tra dữ liệu trước khi gửi
 │
-├── register_recipient.py         # 📥 Webhook nhận PSID người dùng Messenger
-├── recipient_list.json           # 📁 Danh sách động người nhận Messenger (PSID)
+├── register_recipient.py         # 📥 Webhook ghi PSID người dùng mới qua Messenger
+├── recipient_list.json           # 📁 Danh sách người nhận tín hiệu theo PSID
+├── user_config.json              # ⚙️ Cấu hình sàn giao dịch cho từng người dùng
+
 
                
 🧠 Timeline hoạt động bot Cofure | 00:00 → 23:59

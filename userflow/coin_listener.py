@@ -1,21 +1,21 @@
-from utils.validator import is_valid_coin
+import json
 
-class CoinListener:
-    def __init__(self):
-        self.selected_coin = None
+def get_user_coins(psid):
+    try:
+        with open("user_config.json") as f:
+            config = json.load(f)
+        return config.get(psid, {}).get("coins", ["BTCUSDT", "ETHUSDT"])
+    except:
+        return ["BTCUSDT", "ETHUSDT"]
 
-    def get_current_coin(self):
-        if self.selected_coin:
-            return self.selected_coin.upper()
-        return "🤖 Bạn chưa chọn coin nào để phân tích"
-
-    def update_coin(self, user_input):
-        cleaned = user_input.strip().upper()
-        if not is_valid_coin(cleaned):
-            return f"❌ Coin '{cleaned}' không hợp lệ hoặc đã bị chặn"
-        self.selected_coin = cleaned
-        return f"✅ Đã ghi nhận: bạn muốn phân tích {self.selected_coin}"
-
-    def reset_coin(self):
-        self.selected_coin = None
-        return "🔁 Coin đã được đặt lại — bạn có thể chọn coin khác!"
+def set_user_coins(psid, coins):
+    try:
+        with open("user_config.json") as f:
+            config = json.load(f)
+    except:
+        config = {}
+    if psid not in config:
+        config[psid] = {}
+    config[psid]["coins"] = coins
+    with open("user_config.json", "w") as f:
+        json.dump(config, f, indent=2)

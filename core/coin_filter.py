@@ -1,8 +1,7 @@
-# coin_filter.py
+from config import MIN_VOLUME, JUNK_COINS
 
-def is_valid_coin(coin):
-    coin = coin.upper()
-    blocked = ["BTCUP", "BTCDOWN", "ETH3L", "ETH3S", "DOGE5L", "SHIB1000"]
-    if coin in blocked or not coin.isalnum():
-        return False
-    return True
+def is_junk_coin(symbol):
+    return symbol in JUNK_COINS
+
+def is_valid_coin(symbol, volume):
+    return volume >= MIN_VOLUME and not is_junk_coin(symbol)

@@ -1,18 +1,15 @@
-# templates.py
-
-def signal_template(coin, exchange, direction, entry, target, stoploss, strategy, analysis, rr):
+def format_signal(signal):
+    emoji = "📍" if signal.get("note") == "📌 Tham khảo" else "🚀"
     return (
-        f"✅ #{coin.upper()} — {direction}\n"
-        f"📍 Sàn: {exchange} | Khung: M15\n\n"
-        f"{analysis}\n\n"
-        f"🎯 Entry: ${entry} | Target: ${target} | SL: ${stoploss}\n"
-        f"📌 Chiến lược: {strategy}\n{rr}"
+        f"{emoji} {signal['symbol']} | {signal['strategy']}\n"
+        f"💰 Entry: {signal['entry']:,} VND\n"
+        f"🛡 SL: {signal['sl']:,} | 🎯 TP: {signal['tp']:,}\n"
+        f"⚖️ R:R: {signal['rr']} | {signal.get('note', '✅ Ready')}"
     )
 
-def calendar_template(events, date):
+def format_macro_warning(event):
     return (
-        f"📆 Lịch kinh tế hôm nay ({date}) — nguồn: ForexFactory.com\n" +
-        "\n".join(f"— {e}" for e in events) +
-        "\n\n⚠️ Các tin này có thể gây biến động mạnh với thị trường crypto\n"
-        "→ Tránh mở lệnh trước giờ tin ra | Ưu tiên Scalp sau tin nếu volume đẩy mạnh"
+        f"🔔 Tin vĩ mô: {event['time']} — {event['title']}\n"
+        f"⚡ Độ quan trọng: {event['impact']}\n"
+        f"📌 Gợi ý: Quản lý SL hợp lý, tránh vào lệnh lúc biến động!"
     )

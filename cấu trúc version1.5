@@ -1,49 +1,53 @@
-cofure_bot_v1_5/
-├── .env.example                # ✅ Biến môi trường chạy bot Messenger
-├── main.py                    # ✅ Khởi động bot + vòng lặp 24/7
-├── requirements.txt           # ✅ Thư viện Python cần thiết
-├── config.py                  # ✅ Cấu hình giờ, coin, sàn mặc định
-├── risk_manager.py            # ✅ Tính khối lượng lệnh theo số dư & RR
-├── version_handler.py         # ❌ Không cần nếu không dùng quản lý version
-
-├── userflow/                  # 📥 Ghi nhận thông tin người dùng
-│   ├── coin_listener.py           # ✅ Nhập coin từ người dùng
-│   └── exchange_listener.py       # ✅ Nhập sàn từ người dùng
-
-├── core/                      # ⚙️ Xử lý tín hiệu & lệnh giao dịch
-│   ├── entry_checker.py           # ✅ Kiểm tra lệnh hợp lệ
-│   ├── multi_signal_manager.py    # ✅ Quét tín hiệu hàng loạt
-│   ├── liquidity_alert_runner.py  # ✅ Cảnh báo dòng tiền bất thường
-│   ├── coin_filter.py             # ✅ Lọc danh sách coin
-│   ├── signal_analyzer.py         # ✅ Trích xuất MA / RSI / Volume
-│   ├── strategy_classifier.py     # ✅ Phân loại chiến thuật
-│   └── risk_evaluator.py          # ✅ Đánh giá độ rủi ro từng tín hiệu
-
-├── scheduler/                # ⏰ Điều phối tác vụ theo thời gian
-│   ├── schedule_trigger.py        # ✅ Gọi các phiên theo mốc giờ
-│   ├── cron_daemon.py             # ✅ Lặp bot mỗi phút
-│   ├── auto_reporter.py           # ✅ Ghi log tín hiệu
-│   ├── morning_reporter.py        # ✅ Bản tin đầu ngày
-│   ├── economic_calendar.py       # ✅ Quét lịch tin tức
-│   ├── signal_generator.py        # ✅ Sinh tín hiệu giao dịch
-│   ├── event_watcher.py           # ✅ Phân tích sau tin
-│   └── night_summary.py           # ✅ Tổng kết cuối ngày
-
-├── marketdata/              # 📊 Phân tích dữ liệu thị trường
-│   ├── price_fetcher.py          # ✅ Lấy giá theo thời gian thực
-│   ├── liquidity_detector.py     # ✅ Phát hiện bất thường dòng tiền
-│   ├── volume_tracker.py         # ✅ Kiểm tra volume spike
-│   ├── rsi_calculator.py         # ✅ Tính RSI từ chuỗi giá
-│   └── market_snapshot.py        # ✅ Hiển thị bảng giá tổng hợp
-
-├── messages/                # 💬 Tin nhắn hiển thị lên Messenger
-│   ├── templates.py              # ✅ Mẫu tin nhắn
-│   └── emoji_map.py              # ✅ Gán emoji cho coin / tín hiệu
-
-├── utils/                   # 🔧 Hàm hỗ trợ xử lý dữ liệu
-│   ├── formatter.py              # ✅ Format giá, tín hiệu, emoji
-│   └── validator.py              # ✅ Kiểm tra đầu vào
-
-├── report/                  # 📄 Báo cáo gửi cho người dùng cuối
-│   ├── end_day_report.py         # ✅ Tổng kết phiên cuối ngày
-│   └── post_event_analyst.py     # ✅ Phân tích sau tin tức ảnh hưởng
+cofure_bot/
+├── .env.example                     ✅ Mẫu biến môi trường  
+├── config.py                        🟠 Nên tách config người dùng riêng  
+├── main.py                          ✅ File khởi động chính  
+├── requirements.txt                 ✅ Thư viện cần thiết  
+├── Procfile                         ✅ Dùng khi deploy  
+├── README.md                        ✅ Hướng dẫn cài đặt / sử dụng  
+├── risk_manager.py                  ✅ Quản lý lệnh SL/TP/R:R  
+├── version_handler.py               🆕 Ghi chú phiên bản bot v1.5  
+│
+├── mess_handler.py                  ✅ Gửi tin nhắn tới người dùng  
+│
+├── userflow/
+│   ├── coin_listener.py             ✅ Theo dõi coin người dùng chọn  
+│   └── exchange_listener.py         🟠 Trùng chức năng `price_fetcher.py`  
+│
+├── core/
+│   ├── entry_checker.py             ✅ Kiểm tra đủ điều kiện gửi lệnh  
+│   ├── multi_signal_manager.py      🟠 Nên tách nhãn “Tham khảo” ra riêng  
+│   ├── liquidity_alert_runner.py    🟠 Nên chuyển sang nhóm optional  
+│   ├── coin_filter.py               🟠 Có thể gom với `volume_tracker.py`  
+│   ├── signal_analyzer.py           ✅ Xử lý volume, RSI, funding  
+│   ├── strategy_classifier.py       ✅ Gắn chiến thuật Scalping / Swing  
+│   └── risk_evaluator.py            ✅ Ước lượng độ rủi ro  
+│
+├── scheduler/
+│   ├── schedule_trigger.py          ✅ Chu kỳ gửi lệnh 06h–22h  
+│   ├── cron_daemon.py               ✅ Kích hoạt lệnh theo giờ  
+│   ├── auto_reporter.py             ✅ Báo cáo lệnh cuối ngày  
+│   ├── morning_reporter.py          ✅ Gửi bản tin sáng 06h  
+│   ├── signal_generator.py          ✅ Tạo lệnh từ phân tích kỹ thuật  
+│   ├── event_watcher.py             🟠 Nên tách phản ứng sau tin ra riêng  
+│   ├── night_summary.py             ✅ Reset dữ liệu lúc 23h  
+│   └── economic_calendar.py         ❌ Đã bị thay bằng `calendar_watcher.py`  
+│
+├── marketdata/
+│   ├── price_fetcher.py             🟠 Trùng với `exchange_listener.py`  
+│   ├── liquidity_detector.py        ✅ Dò vùng thanh khoản mạnh  
+│   ├── volume_tracker.py            ✅ Theo dõi volume biến động  
+│   ├── rsi_calculator.py            ✅ Tính chỉ số RSI  
+│   └── market_snapshot.py           🟠 Nếu không dùng → chuyển sandbox  
+│
+├── report/
+│   ├── end_day_report.py            ✅ Gửi thống kê kết thúc ngày  
+│   └── post_event_analyst.py        ❌ Trùng logic với `event_watcher.py`  
+│
+├── messages/
+│   ├── templates.py                 ✅ Format lệnh & cảnh báo đẹp  
+│   └── emoji_map.py                 ✅ Biểu tượng cho trạng thái / chiến thuật  
+│
+├── utils/
+│   ├── formatter.py                 ✅ Định dạng giá, tỷ lệ  
+│   └── validator.py                 ✅ Kiểm tra logic trước khi gửi lệnh  

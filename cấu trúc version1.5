@@ -1,53 +1,54 @@
 cofure_bot/
-├── .env.example                     ✅ Mẫu biến môi trường  
-├── config.py                        🟠 Nên tách config người dùng riêng  
-├── main.py                          ✅ File khởi động chính  
-├── requirements.txt                 ✅ Thư viện cần thiết  
-├── Procfile                         ✅ Dùng khi deploy  
-├── README.md                        ✅ Hướng dẫn cài đặt / sử dụng  
-├── risk_manager.py                  ✅ Quản lý lệnh SL/TP/R:R  
-├── version_handler.py               🆕 Ghi chú phiên bản bot v1.5  
-│
-├── mess_handler.py                  ✅ Gửi tin nhắn tới người dùng  
+├── main.py
+├── version_handler.py
+├── config.py
+├── requirements.txt
+├── Procfile
+├── README.md
+├── risk_manager.py
+├── mess_handler.py
+├── .env.example
 │
 ├── userflow/
-│   ├── coin_listener.py             ✅ Theo dõi coin người dùng chọn  
-│   └── exchange_listener.py         🟠 Trùng chức năng `price_fetcher.py`  
+│   ├── coin_listener.py
+│   └── exchange_listener.py
 │
 ├── core/
-│   ├── entry_checker.py             ✅ Kiểm tra đủ điều kiện gửi lệnh  
-│   ├── multi_signal_manager.py      🟠 Nên tách nhãn “Tham khảo” ra riêng  
-│   ├── liquidity_alert_runner.py    🟠 Nên chuyển sang nhóm optional  
-│   ├── coin_filter.py               🟠 Có thể gom với `volume_tracker.py`  
-│   ├── signal_analyzer.py           ✅ Xử lý volume, RSI, funding  
-│   ├── strategy_classifier.py       ✅ Gắn chiến thuật Scalping / Swing  
-│   └── risk_evaluator.py            ✅ Ước lượng độ rủi ro  
+│   ├── entry_checker.py
+│   ├── multi_signal_manager.py
+│   ├── liquidity_alert_runner.py
+│   ├── coin_filter.py
+│   ├── signal_analyzer.py
+│   ├── strategy_classifier.py
+│   └── risk_evaluator.py
 │
 ├── scheduler/
-│   ├── schedule_trigger.py          ✅ Chu kỳ gửi lệnh 06h–22h  
-│   ├── cron_daemon.py               ✅ Kích hoạt lệnh theo giờ  
-│   ├── auto_reporter.py             ✅ Báo cáo lệnh cuối ngày  
-│   ├── morning_reporter.py          ✅ Gửi bản tin sáng 06h  
-│   ├── signal_generator.py          ✅ Tạo lệnh từ phân tích kỹ thuật  
-│   ├── event_watcher.py             🟠 Nên tách phản ứng sau tin ra riêng  
-│   ├── night_summary.py             ✅ Reset dữ liệu lúc 23h  
-│   └── economic_calendar.py         ❌ Đã bị thay bằng `calendar_watcher.py`  
+│   ├── schedule_trigger.py
+│   ├── cron_daemon.py
+│   ├── auto_reporter.py
+│   ├── morning_reporter.py
+│   ├── signal_generator.py
+│   ├── event_watcher.py
+│   ├── night_summary.py
 │
 ├── marketdata/
-│   ├── price_fetcher.py             🟠 Trùng với `exchange_listener.py`  
-│   ├── liquidity_detector.py        ✅ Dò vùng thanh khoản mạnh  
-│   ├── volume_tracker.py            ✅ Theo dõi volume biến động  
-│   ├── rsi_calculator.py            ✅ Tính chỉ số RSI  
-│   └── market_snapshot.py           🟠 Nếu không dùng → chuyển sandbox  
+│   ├── price_fetcher.py
+│   ├── liquidity_detector.py
+│   ├── volume_tracker.py
+│   ├── rsi_calculator.py
+│   └── market_snapshot.py
 │
 ├── report/
-│   ├── end_day_report.py            ✅ Gửi thống kê kết thúc ngày  
-│   └── post_event_analyst.py        ❌ Trùng logic với `event_watcher.py`  
+│   ├── end_day_report.py
 │
 ├── messages/
-│   ├── templates.py                 ✅ Format lệnh & cảnh báo đẹp  
-│   └── emoji_map.py                 ✅ Biểu tượng cho trạng thái / chiến thuật  
+│   ├── templates.py
+│   └── emoji_map.py
 │
 ├── utils/
-│   ├── formatter.py                 ✅ Định dạng giá, tỷ lệ  
-│   └── validator.py                 ✅ Kiểm tra logic trước khi gửi lệnh  
+│   ├── formatter.py
+│   └── validator.py
+               
+🕒 Thời điểm	⚙️ Bot thực hiện gì
+00:00 – 05:59	Quét sớm phiên Á nếu có volume hoặc MA đảo chiều
+→ Nếu có tín hiệu VIP → gửi ngay → Không có gì nổi bật → bot nghỉ tạm | | 06:00 | Bản tin sáng → Chào ngày mới → Tỷ giá USDT/VND → Lịch kinh tế hôm nay → Nhận định xu hướng BTC/Altcoin | | 07:00 | Quét lịch tin tức vĩ mô → Nếu có tin CPI, FOMC, GDP, NFP… → bot báo thời điểm + tác động → Nếu không có tin → bot báo rõ "Không có tin vĩ mô quan trọng" | | 06:00 – 22:00 | Chu kỳ gửi lệnh Futures → Batch 5 lệnh mỗi 15p/30p → Gắn chiến thuật: Scalping / Swing → Lệnh yếu → gắn nhãn 📌 Tham khảo → Tín hiệu VIP → gửi ngay không đợi batch | | Giờ tin ra (bất kỳ) | Bot phản ứng tức thì → Cảnh báo đúng thời điểm → Phân tích tác động → Nếu thị trường biến động mạnh → bot gửi tín hiệu mới kèm lý do | | 22:00 – 23:00 | Báo cáo cuối ngày → Tổng kết MUA/BÁN → Trung bình R:R → Chúc ngủ ngon | | 23:00 – 23:59 | Chuẩn bị cho hôm sau → Reset volume, funding, MA → Lọc lại top coin tiềm năng → Lên lịch bản tin 06:00 hôm sau

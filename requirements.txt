@@ -1,3 +1,4 @@
-requests
 flask
-apscheduler
+requests
+gunicorn
+python-dotenv

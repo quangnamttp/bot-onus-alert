@@ -1,33 +1,18 @@
-from flask import Flask, request
-from dotenv import load_dotenv
-import os
-
-# 🔐 Load biến môi trường từ file .env
-load_dotenv()
+from flask import Flask
+from messenger.mess_handler import handle_webhook
 
 app = Flask(__name__)
 
-# 🎯 Route webhook để nhận và xác thực từ Meta
-@app.route('/webhook', methods=['GET', 'POST'])
+# 📡 Route nhận Webhook từ Facebook Messenger
+@app.route("/webhook", methods=["GET", "POST"])
 def webhook():
-    if request.method == 'GET':
-        # Xác thực Webhook từ Meta Developer
-        mode = request.args.get("hub.mode")
-        token = request.args.get("hub.verify_token")
-        challenge = request.args.get("hub.challenge")
-        verify_token = os.getenv("VERIFY_TOKEN")
+    return handle_webhook()
 
-        if mode == "subscribe" and token == verify_token:
-            print("✅ Webhook đã xác thực từ Meta")
-            return challenge, 200
-        else:
-            print("❌ Webhook xác thực thất bại")
-            return "Verification failed", 403
+# ✅ Route kiểm tra bot đang chạy
+@app.route("/")
+def home():
+    return "🔧 Cofure Bot đang hoạt động!"
 
-    elif request.method == 'POST':
-        # Xử lý tin nhắn từ Messenger
-        from messenger.mess_handler import handle_webhook
-        return handle_webhook()
-
-# ❌ KHÔNG gọi app.run() ở đây
-# Vì Render sử dụng gunicorn: Procfile = "web: gunicorn main:app"
+# 🚀 Khởi động Flask server
+if __name__ == "__main__":
+    app.run(debug=True)

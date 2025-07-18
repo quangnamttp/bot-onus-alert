@@ -1,14 +1,13 @@
-import os
 import requests
+import json
+from config import PAGE_ACCESS_TOKEN
 
-FB_PAGE_TOKEN = os.getenv("FB_PAGE_TOKEN")
-
-def send_message(recipient_id, message_text):
+def send_message(recipient_id, text):
+    url = f"https://graph.facebook.com/v18.0/me/messages?access_token={PAGE_ACCESS_TOKEN}"
     payload = {
-        "recipient": {"id": recipient_id},
-        "message": {"text": message_text}
+        "recipient": { "id": recipient_id },
+        "message": { "text": text }
     }
-
-    url = f"https://graph.facebook.com/v17.0/me/messages?access_token={FB_PAGE_TOKEN}"
-    headers = {"Content-Type": "application/json"}
-    requests.post(url, headers=headers, json=payload)
+    headers = { "Content-Type": "application/json" }
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    print("📨 Gửi tin nhắn:", response.status_code, response.text)

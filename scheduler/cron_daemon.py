@@ -1,4 +1,9 @@
-from scheduler.schedule_trigger import start_scheduler
+import time
+from scheduler.macro_reporter import morning_macro_report
 
-if __name__ == "__main__":
-    start_scheduler()
+def run_cron():
+    while True:
+        now = time.strftime("%H:%M")
+        if now == "06:00":
+            morning_macro_report()
+        time.sleep(60)

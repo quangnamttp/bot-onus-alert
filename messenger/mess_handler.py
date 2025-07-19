@@ -11,27 +11,25 @@ def handle_message(event):
         return
     mark_processed(mid)
 
-    # Nếu user đã kích hoạt → bot xử lý gửi lệnh theo scheduler
     if is_registered(sender_id):
+        send_message(sender_id, "✅ Bot Cofure đã bật cho bạn! Tín hiệu sẽ gửi theo từng khung giờ 🚀")
         return
 
-    # Nếu user nhắn lần đầu → hỏi xác nhận
     if message_text in ["", "hi", "hello", "chào", "bắt đầu", "start"] or len(message_text) < 5:
         send_message(sender_id,
-            "👋 Chào bạn! Peace là bot gửi tín hiệu trade kỹ thuật từ 06:00 đến 23:00 mỗi ngày theo sàn ONUS.\n📈 Bạn có muốn nhận tín hiệu không?\n🟩 Trả lời 'Có' để kích hoạt bot\n⬜ Trả lời 'Không' để thoát"
+            "👋 Chào bạn! Đây là bot Cofure gửi tín hiệu trade từ 00:00 đến 23:59.\n🧠 Bạn có muốn nhận tín hiệu không?\n🟩 Trả lời 'Có' để kích hoạt\n⬜ Trả lời 'Không' để từ chối"
         )
         return
 
-    # Nếu user chọn “Có” → kích hoạt + ghi PSID
     if message_text == "có":
         mark_registered(sender_id)
         send_message(sender_id,
-            "✅ Peace đã được kích hoạt cho bạn! Tín hiệu crypto sẽ bắt đầu gửi từ phiên sáng lúc 06:00 hàng ngày 💹"
+            "✅ Bạn đã đồng ý nhận tín hiệu từ bot Cofure! Bắt đầu từ bản tin sáng lúc 06:00 ⏰"
         )
         return
 
-    # Nếu user chọn “Không” → bot giữ im lặng
     if message_text == "không":
+        send_message(sender_id,
+            "☁️ Bạn đã từ chối nhận tín hiệu. Nếu muốn bắt đầu lại, hãy nhắn 'Có'."
+        )
         return
-
-    return

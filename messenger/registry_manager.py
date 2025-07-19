@@ -1,7 +1,10 @@
 import json
 
-def mark_pending(sender_id):
-    path = "data/pending_users.json"
+def user_registry_path():
+    return "data/user_registry.json"
+
+def mark_registered(sender_id):
+    path = user_registry_path()
     try:
         with open(path, "r") as f:
             data = json.load(f)
@@ -13,8 +16,8 @@ def mark_pending(sender_id):
         with open(path, "w") as f:
             json.dump(data, f, indent=2)
 
-def is_pending(sender_id):
-    path = "data/pending_users.json"
+def is_registered(sender_id):
+    path = user_registry_path()
     try:
         with open(path, "r") as f:
             data = json.load(f)
@@ -22,11 +25,10 @@ def is_pending(sender_id):
     except:
         return False
 
-def is_registered(sender_id):
-    path = "data/user_registry.json"
+def get_all_registered_users():
+    path = user_registry_path()
     try:
         with open(path, "r") as f:
-            data = json.load(f)
-        return sender_id in data
+            return json.load(f)
     except:
-        return False
+        return []

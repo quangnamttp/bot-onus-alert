@@ -1,54 +1,53 @@
 cofure_bot/
-├── main.py                      # 🚀 Khởi động Flask & định tuyến webhook
-├── version_handler.py           # 🧠 Hiển thị phiên bản đang chạy
-├── config.py                    # ⚙️ Cấu hình nhóm coin, chiến thuật, đơn vị tiền
-├── requirements.txt             # 📦 Các thư viện cần cài (Flask, requests…)
-├── Procfile                     # 🛠 Lệnh khởi chạy bot trên Render
-├── README.md                    # 📘 Hướng dẫn triển khai, khởi động
-├── risk_manager.py              # 📊 Tính SL/TP/R:R từ giá ONUS
-├── .env                         # 🔐 Token bí mật & PORT khởi động
+├── main.py                    🚀 Khởi động Flask & webhook Messenger
+├── init_files.py              🔧 Tạo file JSON cần thiết khi khởi động
+├── requirements.txt           📦 Flask, requests, gunicorn, dotenv
+├── Procfile                   ⚙️ Lệnh chạy bot (web: python3 main.py)
+├── .env.example               🔐 Mẫu file môi trường: token & PORT
 │
-├── messenger/                   # 💬 Giao tiếp qua Facebook Messenger
-│   ├── mess_handler.py          # 📥 Nhận, phân tích và xử lý tin nhắn đầu vào
-│   ├── message_sender.py        # 📤 Gửi phản hồi về Messenger
-│   └── registry_manager.py      # 📁 Lưu & kiểm tra người dùng đã kích hoạt bot
+├── messenger/                 💬 Xử lý tin nhắn & xác nhận người dùng
+│   ├── mess_handler.py        📥 Phân tích nội dung tin nhắn đầu vào
+│   ├── message_sender.py      📤 Gửi tin về Messenger qua API
+│   └── registry_manager.py    ✅ Lưu danh sách user đã kích hoạt bot
 │
-├── scheduler/                   # ⏰ Tự động gửi tin & lệnh theo giờ
-│   ├── macro_reporter.py        # 🌅 Gửi bản tin sáng lúc 06:00
-│   ├── macro_advisor.py         # 📊 Phân tích sau tin CPI/FOMC/NFP
-│   ├── end_day_report.py        # 📄 Gửi báo cáo cuối ngày lúc 22:00
-│   └── cron_daemon.py           # 🧭 Điều phối các tác vụ theo khung giờ
+├── scheduler/                 ⏰ Gửi nội dung theo từng khung giờ
+│   ├── cron_daemon.py         🧭 Kiểm tra giờ & gọi module tương ứng
+│   ├── macro_reporter.py      🌅 Bản tin sáng lúc 06:00
+│   ├── macro_advisor.py       🔔 Cảnh báo vĩ mô sau tin CPI/FOMC
+│   ├── signals.py             📡 Gửi batch lệnh crypto 15–30 phút
+│   ├── end_day_report.py      📊 Báo cáo & chúc ngủ ngon lúc 22h
+│   └── reset_state.py         🔄 Reset dữ liệu lúc 23h
 │
-├── core/                        # 🔍 Sinh lệnh kỹ thuật crypto
-│   ├── signal_generator.py      # 🔁 Tạo batch lệnh Scalping / Swing (3 Long + 2 Short)
-│   ├── entry_checker.py         # ✅ Kiểm tra điểm vào lệnh
-│   ├── coin_filter.py           # 🧹 Lọc coin rủi ro thấp / volume mạnh
-│   ├── signal_analyzer.py       # 📊 Phân tích RSI, Funding, MA
-│   ├── strategy_classifier.py   # 🧠 Gắn chiến thuật: Market / Limit
-│   └── risk_evaluator.py        # ⚠️ Ước tính độ rủi ro vị thế
+├── core/                      🔍 Xử lý kỹ thuật tín hiệu crypto
+│   ├── signal_generator.py    🔁 Sinh lệnh Scalping / Swing
+│   ├── signal_analyzer.py     📊 Đánh giá MA, RSI, funding
+│   ├── coin_filter.py         🧹 Lọc coin có volume & trạng thái tốt
+│   └── strategy_classifier.py 🧠 Gắn kiểu lệnh Market / Limit
 │
-├── macro/                       # 🌍 Lịch tin & phân tích vĩ mô
-│   ├── event_watcher.py         # 🔔 Quét lịch tin CPI/FOMC/NFP/GDP
-│   └── news_analyzer.py         # 📈 Đánh giá tác động vĩ mô đến thị trường
+├── macro/                     🌍 Lịch tin tức & phân tích vĩ mô
+│   ├── event_watcher.py       📅 Quét CPI, FOMC, GDP theo ngày
+│   └── news_analyzer.py       📈 Phân tích & format tác động
 │
-├── marketdata/                  # 📈 Dữ liệu thị trường ONUS theo thời gian thực
-│   ├── price_fetcher.py         # 💰 Lấy giá từng coin theo VND/USD
-│   ├── volume_tracker.py        # 🔎 Phát hiện biến động volume
-│   ├── liquidity_detector.py    # 💧 Phân tích thanh khoản
-│   └── market_snapshot.py       # 🖼 Tổng quan thị trường hiện tại
+├── marketdata/                📈 Giá, volume, trạng thái thị trường
+│   ├── price_fetcher.py       💰 Lấy giá USDT/VND từ ONUS hoặc Nami
+│   ├── volume_tracker.py      🔎 Biến động volume theo phiên
+│   └── market_snapshot.py     🖼 Tổng quan thị trường hiện tại
 │
-├── messages/                    # ✉️ Format nội dung tín hiệu gửi cho người dùng
-│   ├── templates.py             # 📋 Mẫu lệnh Entry / TP / SL / emoji
-│   └── emoji_map.py             # 😀 Gắn biểu tượng chiến thuật / độ mạnh
+├── messages/                  ✉️ Format tín hiệu gửi cho người dùng
+│   ├── templates.py           📋 Mẫu Entry / SL / TP
+│   └── emoji_map.py           😀 Gắn biểu tượng theo sức mạnh & chiến thuật
 │
-├── utils/                       # 🔧 Tiện ích hỗ trợ toàn hệ thống
-│   ├── formatter.py             # 🔢 Format số liệu, phần trăm
-│   ├── mid_tracker.py           # 🔁 Ghi message_id để chống phản hồi trùng
-│   └── json_utils.py            # 📁 Đọc & ghi file JSON an toàn
+├── utils/                     🔧 Hàm tiện ích dùng chung
+│   ├── formatter.py           🔢 Làm tròn số, định dạng phần trăm
+│   ├── mid_tracker.py         🔁 Chống phản hồi lặp khi user spam
+│   └── json_utils.py          📁 Đọc/ghi JSON an toàn
 │
-├── data/                        # 📁 Trạng thái hệ thống lưu tạm
-│   ├── user_registry.json       # ✅ Người dùng đã kích hoạt bot
-│   └── processed_mids.json      # 🔁 Message ID đã phản hồi để tránh lặp
+├── data/                      🗂 Dữ liệu tạm thời & trạng thái bot
+│   ├── user_registry.json     ✅ Người dùng đã xác nhận “Có”
+│   ├── processed_mids.json    🔁 Tin nhắn đã phản hồi để tránh spam
+│   ├── macro_schedule.json    📅 Cache lịch tin vĩ mô
+│   └── volume_state.json      📊 Trạng thái volume từng phiên
+
                
 🧠 Timeline hoạt động bot Cofure | 00:00 → 23:59
 🕒 Thời điểm	⚙️ Bot thực hiện gì

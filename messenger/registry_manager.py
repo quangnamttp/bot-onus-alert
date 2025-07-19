@@ -1,34 +1,34 @@
 import json
+import os
 
-def user_registry_path():
-    return "data/user_registry.json"
+REGISTRY_PATH = "data/user_registry.json"
 
 def mark_registered(sender_id):
-    path = user_registry_path()
-    try:
-        with open(path, "r") as f:
-            data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        data = []
+    if not os.path.exists(REGISTRY_PATH):
+        with open(REGISTRY_PATH, "w") as f:
+            json.dump([], f)
 
-    if sender_id not in data:
-        data.append(sender_id)
-        with open(path, "w") as f:
-            json.dump(data, f, indent=2)
+    try:
+        with open(REGISTRY_PATH, "r") as f:
+            users = json.load(f)
+        if sender_id not in users:
+            users.append(sender_id)
+            with open(REGISTRY_PATH, "w") as f:
+                json.dump(users, f, indent=2)
+    except:
+        pass
 
 def is_registered(sender_id):
-    path = user_registry_path()
     try:
-        with open(path, "r") as f:
-            data = json.load(f)
-        return sender_id in data
+        with open(REGISTRY_PATH, "r") as f:
+            users = json.load(f)
+        return sender_id in users
     except:
         return False
 
 def get_all_registered_users():
-    path = user_registry_path()
     try:
-        with open(path, "r") as f:
+        with open(REGISTRY_PATH, "r") as f:
             return json.load(f)
     except:
         return []

@@ -1,12 +1,13 @@
-from macro.news_analyzer import analyze_macro_impact
 from messenger.message_sender import send_message
-import json
+from messenger.registry_manager import get_all_registered_users
+from macro.news_analyzer import analyze_today_news
 
-def evaluate_market_after_news(news_data):
-    insight = analyze_macro_impact(news_data)
+def check_macro_alerts():
+    users = get_all_registered_users()
+    news_alert = analyze_today_news()
 
-    with open("data/user_registry.json", "r") as f:
-        users = json.load(f)
+    if not news_alert:
+        return
 
     for psid in users:
-        send_message(psid, f"📈 Sau khi tin ra:\n{insight}")
+        send_message(psid, f"🔔 Cảnh báo vĩ mô: {news_alert}")

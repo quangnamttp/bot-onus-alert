@@ -1,93 +1,44 @@
-from flask import request
-import json
-import os
-from config import PENDING_USERS_PATH
 from messenger.message_sender import send_message
+from messenger.registry_manager import is_registered, is_pending, mark_pending
+from utils.mid_tracker import has_processed, mark_processed
 
-# 👉 Import các module nâng cấp
-from handlers.duyet_handler import duyet_user
-from handlers.xacnhan_handler import xac_nhan_user
-from handlers.broadcast_handler import broadcast_message
-from utils.mid_tracker import is_mid_processed, mark_mid_processed
-from utils.permissions import is_admin
+def handle_message(event):
+    sender_id = event['sender']['id']
+    message_text = event['message'].get('text', '').strip().lower()
+    mid = event['message'].get('mid', '')
 
-def handle_webhook():
-    if request.method == "GET":
-        verify_token = request.args.get("hub.verify_token")
-        challenge = request.args.get("hub.challenge")
-        if verify_token == "cofure_verify_2025":
-            return challenge, 200
-        return "❌ Verify token sai", 403
+    # 🔁 Chống phản hồi trùng nếu Facebook gửi lại payload
+    if has_processed(mid):
+        return
+    mark_processed(mid)
 
-    data = request.get_json()
-    print("📦 Payload nhận được:\n", json.dumps(data, indent=2))
+    # ✅ Nếu người dùng đã được duyệt → bot hoạt động bình thường
+    if is_registered(sender_id):
+        # Tại đây gắn xử lý gửi tín hiệu, nhận lệnh, broadcast v.v.
+        return
 
-    for entry in data.get("entry", []):
-        for msg in entry.get("messaging", []):
-            message_obj = msg.get("message", {})
-            if message_obj.get("is_echo"):
-                print("🔁 Bỏ qua tin nhắn echo từ bot")
-                continue
+    # ⌛ Nếu người dùng đã chọn "Có" và đang chờ duyệt → không phản hồi nữa
+    if is_pending(sender_id):
+        return
 
-            if "text" not in message_obj:
-                print("⚠️ Không có nội dung text — bỏ qua")
-                continue
+    # 🧠 Nếu người dùng nhắn tin lần đầu tiên → bot hỏi xác nhận
+    if message_text in ["", "hi", "hello", "chào", "bắt đầu", "start"]:
+        send_message(sender_id,
+            "📩 Chào bạn! Bot Cofure chuyên gửi tín hiệu trade kỹ thuật theo sàn ONUS mỗi ngày từ 06:00 đến 22:00\n📈 Bạn có muốn nhận tín hiệu lệnh hôm nay không?\n🟩 Trả lời “Có” để bắt đầu quy trình duyệt\n⬜ Trả lời “Không” nếu bạn không muốn sử dụng bot"
+        )
+        return
 
-            mid = message_obj.get("mid")
-            if not mid or is_mid_processed(mid):
-                print(f"🔁 Payload {mid} đã xử lý — bỏ qua")
-                continue
-            mark_mid_processed(mid)
+    # ✅ Nếu người dùng trả lời "Có" → bot ghi vào pending_users.json + gửi link duyệt
+    if message_text == "có":
+        mark_pending(sender_id)
+        send_message(sender_id,
+            "📥 Cofure đã ghi nhận yêu cầu nhận lệnh của bạn\n📩 Vui lòng liên hệ admin [Trương Tấn Phương](https://www.facebook.com/quangnamttp) để được phê duyệt\n✅ Sau khi được duyệt, bot sẽ bắt đầu gửi tín hiệu trade mỗi ngày theo sàn ONUS!"
+        )
+        return
 
-            sender_id = msg.get("sender", {}).get("id")
-            if not sender_id:
-                print("❌ Không tìm thấy sender.id")
-                continue
+    # ❌ Nếu người dùng trả lời "Không" → bot im lặng, không phản hồi
+    if message_text == "không":
+        return
 
-            message_text = message_obj.get("text", "").strip()
-            print(f"🆔 PSID: {sender_id}")
-            print(f"💬 Nội dung: {message_text}")
-
-            # ✅ Lệnh quản trị: chỉ admin mới dùng được
-            if message_text.startswith("/duyet"):
-                if not is_admin(sender_id):
-                    send_message(sender_id, "⛔ Bạn không có quyền duyệt người dùng.")
-                    continue
-                duyet_user(sender_id, message_text)
-                continue
-
-            if message_text.lower().startswith("/broadcast"):
-                if not is_admin(sender_id):
-                    send_message(sender_id, "⛔ Bạn không có quyền gửi bản tin.")
-                    continue
-                broadcast_message(sender_id, message_text)
-                continue
-
-            # ✅ Lệnh người dùng: kiểm tra trạng thái duyệt
-            if message_text.lower().startswith("/xacnhan"):
-                xac_nhan_user(sender_id)
-                continue
-
-            # 📂 Ghi vào pending_users.json nếu chưa có
-            if not os.path.exists(PENDING_USERS_PATH):
-                with open(PENDING_USERS_PATH, "w") as f:
-                    json.dump([], f)
-
-            try:
-                with open(PENDING_USERS_PATH, "r") as f:
-                    pending = json.load(f)
-            except Exception:
-                pending = []
-
-            if sender_id not in pending:
-                pending.append(sender_id)
-                with open(PENDING_USERS_PATH, "w") as f:
-                    json.dump(pending, f, indent=2)
-                print("⏳ Ghi PSID vào pending_users.json")
-            else:
-                print("🔁 PSID đã tồn tại")
-
-            # ✅ Phản hồi mặc định cho tin nhắn bình thường
-            send_message(sender_id, "✅ Cofure đã nhận tín hiệu của bạn!")
-
-    return "ok", 200
+    # 📬 Nếu user gửi nội dung khác → bot giữ im lặng để tránh spam
+    return

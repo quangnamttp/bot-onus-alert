@@ -1,77 +1,54 @@
 cofure_bot/
 ├── main.py                      # 🚀 Khởi động Flask & định tuyến webhook
-├── version_handler.py           # 🧠 Ghi chú phiên bản bot đang chạy
+├── version_handler.py           # 🧠 Hiển thị phiên bản đang chạy
 ├── config.py                    # ⚙️ Cấu hình nhóm coin, chiến thuật, đơn vị tiền
-├── requirements.txt             # 📦 Thư viện cần cài (Flask, requests…)
+├── requirements.txt             # 📦 Các thư viện cần cài (Flask, requests…)
 ├── Procfile                     # 🛠 Lệnh khởi chạy bot trên Render
-├── README.md                    # 📘 Tài liệu hướng dẫn triển khai
-├── risk_manager.py              # 📊 Tính SL/TP/R:R từ giá VND
-├── .env                         # 🔐 Token bí mật & port khởi động
+├── README.md                    # 📘 Hướng dẫn triển khai, khởi động
+├── risk_manager.py              # 📊 Tính SL/TP/R:R từ giá ONUS
+├── .env                         # 🔐 Token bí mật & PORT khởi động
 │
-├── admin/                       # 👤 Quản trị và xét duyệt người dùng
-│   ├── approval_handler.py      # ✅ Xử lý lệnh /duyet hoặc /huy user
-│   └── config_loader.py         # 📥 Load danh sách admin từ file
+├── messenger/                   # 💬 Giao tiếp qua Facebook Messenger
+│   ├── mess_handler.py          # 📥 Nhận, phân tích và xử lý tin nhắn đầu vào
+│   ├── message_sender.py        # 📤 Gửi phản hồi về Messenger
+│   └── registry_manager.py      # 📁 Lưu & kiểm tra người dùng đã kích hoạt bot
 │
-├── messenger/                   # 💬 Giao tiếp với Facebook Messenger
-│   ├── mess_handler.py          # 📥 Nhận, phân tích và xử lý tin nhắn
-│   ├── message_sender.py        # 📤 Gửi phản hồi tin nhắn về Messenger
-│   └── registry_manager.py      # 📁 Quản lý danh sách user pending & đã duyệt
+├── scheduler/                   # ⏰ Tự động gửi tin & lệnh theo giờ
+│   ├── macro_reporter.py        # 🌅 Gửi bản tin sáng lúc 06:00
+│   ├── macro_advisor.py         # 📊 Phân tích sau tin CPI/FOMC/NFP
+│   ├── end_day_report.py        # 📄 Gửi báo cáo cuối ngày lúc 22:00
+│   └── cron_daemon.py           # 🧭 Điều phối các tác vụ theo khung giờ
 │
-├── macro/                       # 🌍 Phân tích tin tức và lịch vĩ mô
-│   ├── event_watcher.py         # 🔔 Quét lịch CPI, FOMC, NFP…
-│   └── news_analyzer.py         # 📈 Phân tích ảnh hưởng tin tức đến thị trường
+├── core/                        # 🔍 Sinh lệnh kỹ thuật crypto
+│   ├── signal_generator.py      # 🔁 Tạo batch lệnh Scalping / Swing (3 Long + 2 Short)
+│   ├── entry_checker.py         # ✅ Kiểm tra điểm vào lệnh
+│   ├── coin_filter.py           # 🧹 Lọc coin rủi ro thấp / volume mạnh
+│   ├── signal_analyzer.py       # 📊 Phân tích RSI, Funding, MA
+│   ├── strategy_classifier.py   # 🧠 Gắn chiến thuật: Market / Limit
+│   └── risk_evaluator.py        # ⚠️ Ước tính độ rủi ro vị thế
 │
-├── scheduler/                   # ⏰ Tự động gửi tin theo lịch trình
-│   ├── macro_reporter.py        # 🌅 Gửi bản tin sáng về lịch vĩ mô
-│   ├── macro_advisor.py         # 📊 Phân tích sau khi tin ra
-│   └── cron_daemon.py           # 🧭 Kích hoạt tác vụ theo khung giờ hệ thống
+├── macro/                       # 🌍 Lịch tin & phân tích vĩ mô
+│   ├── event_watcher.py         # 🔔 Quét lịch tin CPI/FOMC/NFP/GDP
+│   └── news_analyzer.py         # 📈 Đánh giá tác động vĩ mô đến thị trường
 │
-├── core/                        # 🏹 Sinh tín hiệu kỹ thuật crypto
-│   ├── signal_generator.py      # 🔁 Sinh lệnh Scalping / Swing
-│   ├── entry_checker.py         # ✅ Kiểm tra điều kiện đủ để vào lệnh
-│   ├── multi_signal_manager.py  # 📌 Gợi ý lệnh low confidence
-│   ├── liquidity_alert_runner.py# 💧 Cảnh báo vùng thanh khoản mạnh
-│   ├── coin_filter.py           # 🧹 Lọc coin volume yếu hoặc rủi ro cao
-│   ├── signal_analyzer.py       # 📊 Phân tích các chỉ báo: RSI, Funding…
-│   ├── strategy_classifier.py   # 🧠 Gắn chiến thuật cho từng lệnh
-│   └── risk_evaluator.py        # ⚠️ Đánh giá độ rủi ro từng vị thế
+├── marketdata/                  # 📈 Dữ liệu thị trường ONUS theo thời gian thực
+│   ├── price_fetcher.py         # 💰 Lấy giá từng coin theo VND/USD
+│   ├── volume_tracker.py        # 🔎 Phát hiện biến động volume
+│   ├── liquidity_detector.py    # 💧 Phân tích thanh khoản
+│   └── market_snapshot.py       # 🖼 Tổng quan thị trường hiện tại
 │
-├── userflow/                    # 👁 Theo dõi coin hoặc sàn theo người dùng
-│   ├── coin_listener.py         # 📌 Quản lý danh sách coin đang được theo dõi
-│   └── exchange_listener.py     # 🔄 Lấy dữ liệu sàn phù hợp với user
-│
-├── marketdata/                  # 📈 Lấy dữ liệu thị trường real-time
-│   ├── price_fetcher.py         # 💰 Lấy giá coin hiện tại theo thời gian
-│   ├── liquidity_detector.py    # 💧 Phân tích vùng thanh khoản động
-│   ├── volume_tracker.py        # 🔎 Theo dõi biến động volume bất thường
-│   ├── rsi_calculator.py        # 📐 Tính chỉ số RSI
-│   └── market_snapshot.py       # 🖼 Ảnh chụp tổng quan thị trường
-│
-├── messages/                    # ✉️ Format nội dung lệnh gửi đi
-│   ├── templates.py             # 📋 Mẫu entry, TP, SL, emoji & chiến thuật
-│   └── emoji_map.py             # 😀 Mapping biểu tượng theo trạng thái lệnh
-│
-├── report/                      # 📄 Tổng kết lệnh theo ngày hoặc tuần
-│   └── end_day_report.py        # 📊 Thống kê R:R và tỷ lệ thắng cuối ngày
+├── messages/                    # ✉️ Format nội dung tín hiệu gửi cho người dùng
+│   ├── templates.py             # 📋 Mẫu lệnh Entry / TP / SL / emoji
+│   └── emoji_map.py             # 😀 Gắn biểu tượng chiến thuật / độ mạnh
 │
 ├── utils/                       # 🔧 Tiện ích hỗ trợ toàn hệ thống
-│   ├── formatter.py             # 🔢 Format số liệu, giá trị, %
-│   ├── validator.py             # ✅ Kiểm tra dữ liệu đầu vào
+│   ├── formatter.py             # 🔢 Format số liệu, phần trăm
 │   ├── mid_tracker.py           # 🔁 Ghi message_id để chống phản hồi trùng
-│   ├── permissions.py           # 🔐 Kiểm tra quyền admin của user
-│   └── json_utils.py            # 📁 Đọc/ghi file JSON an toàn
+│   └── json_utils.py            # 📁 Đọc & ghi file JSON an toàn
 │
-├── handlers/                    # 🔄 Xử lý các lệnh do user gửi
-│   ├── duyet_handler.py         # ✅ Lệnh /duyet [PSID] để duyệt user qua Messenger
-│   ├── xacnhan_handler.py       # 📋 Lệnh /xacnhan → hiển thị trạng thái duyệt
-│   └── broadcast_handler.py     # 📢 Lệnh /broadcast gửi tin cho toàn bộ user đã duyệt
-│
-├── data/                        # 📁 Trạng thái hệ thống
-│   ├── admin_config.json        # 👤 DS PSID có quyền quản trị bot
-│   ├── user_registry.json       # ✅ DS user đã được duyệt
-│   ├── pending_users.json       # ⌛ DS user đang chờ duyệt
-│   └── processed_mids.json      # 🔁 DS message_id đã xử lý để tránh phản hồi lặp
-
+├── data/                        # 📁 Trạng thái hệ thống lưu tạm
+│   ├── user_registry.json       # ✅ Người dùng đã kích hoạt bot
+│   └── processed_mids.json      # 🔁 Message ID đã phản hồi để tránh lặp
                
 🧠 Timeline hoạt động bot Cofure | 00:00 → 23:59
 🕒 Thời điểm	⚙️ Bot thực hiện gì

@@ -1,7 +1,22 @@
-from config import MIN_VOLUME, JUNK_COINS
+from market.volume_analyzer import get_top_volume_coins
+from market.funding_reader import get_funding_rates
+from market.volatility_checker import get_volatility_score
+from core.cache_manager import get_used_today
 
-def is_junk_coin(symbol):
-    return symbol in JUNK_COINS
+def get_filtered_coins():
+    volume_coins = get_top_volume_coins(limit=10)
+    funding = get_funding_rates()
+    volatility = get_volatility_score()
+    used = get_used_today()
 
-def is_valid_coin(symbol, volume):
-    return volume >= MIN_VOLUME and not is_junk_coin(symbol)
+    candidates = []
+    for coin in volume_coins:
+        if coin in used:
+            continue
+        if volatility[coin] < 2.0:
+            continue
+        if abs(funding[coin]) > 0.06:
+            continue
+        candidates.append(coin)
+
+    return candidates

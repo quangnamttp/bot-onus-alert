@@ -11,7 +11,7 @@ def verify():
     verify_token = os.getenv("VERIFY_TOKEN", "")
     if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.verify_token") == verify_token:
         return request.args.get("hub.challenge"), 200
-    return "Invalid token", 403
+    return "Invalid verification token", 403
 
 @app.route('/webhook', methods=['POST'])
 def webhook():

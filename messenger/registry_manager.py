@@ -26,6 +26,16 @@ def is_registered(sender_id):
     except:
         return False
 
+def remove_from_registry(sender_id):
+    try:
+        with open(REGISTRY_PATH, "r") as f:
+            users = json.load(f)
+        users = [u for u in users if u != sender_id]
+        with open(REGISTRY_PATH, "w") as f:
+            json.dump(users, f, indent=2)
+    except:
+        pass
+
 def get_all_registered_users():
     try:
         with open(REGISTRY_PATH, "r") as f:

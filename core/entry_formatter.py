@@ -1,2 +1,2 @@
-def format_price_vnd(price):
-    return f"{price:,} VND"
+def format_vnd(value):
+    return f"{value:,} VND"

@@ -22,3 +22,6 @@ def mark_used(coin):
 def reset_coin_state():
     with open(CACHE_PATH, "w") as f:
         json.dump([], f)
+
+def is_used(coin):
+    return coin in get_used_today()

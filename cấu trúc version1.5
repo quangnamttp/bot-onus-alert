@@ -1,55 +1,69 @@
 cofure_bot/
-├── main.py                    🚀 Khởi động Flask & webhook Messenger
-├── init_files.py              🔧 Tạo file JSON cần thiết khi khởi động
-├── requirements.txt           📦 Flask, requests, gunicorn, dotenv
-├── Procfile                   ⚙️ Lệnh chạy bot (web: python3 main.py)
-├── .env.example               🔐 Mẫu file môi trường: token & PORT
-│
-├── messenger/                 💬 Xử lý tin nhắn & xác nhận người dùng
-│   ├── mess_handler.py        📥 Phân tích nội dung tin nhắn đầu vào
-│   ├── message_sender.py      📤 Gửi tin về Messenger qua API
-│   └── registry_manager.py    ✅ Lưu danh sách user đã kích hoạt bot
-│
-├── scheduler/                 ⏰ Gửi nội dung theo từng khung giờ
-│   ├── cron_daemon.py         🧭 Kiểm tra giờ & gọi module tương ứng
-│   ├── macro_reporter.py      🌅 Bản tin sáng lúc 06:00
-│   ├── macro_advisor.py       🔔 Cảnh báo vĩ mô sau tin CPI/FOMC
-│   ├── signals.py             📡 Gửi batch lệnh crypto 15–30 phút
-│   ├── end_day_report.py      📊 Báo cáo & chúc ngủ ngon lúc 22h
-│   └── reset_state.py         🔄 Reset dữ liệu lúc 23h
-│
-├── core/                      🔍 Xử lý kỹ thuật tín hiệu crypto
-│   ├── signal_generator.py    🔁 Sinh lệnh Scalping / Swing
-│   ├── signal_analyzer.py     📊 Đánh giá MA, RSI, funding
-│   ├── coin_filter.py         🧹 Lọc coin có volume & trạng thái tốt
-│   └── strategy_classifier.py 🧠 Gắn kiểu lệnh Market / Limit
-│
-├── macro/                     🌍 Lịch tin tức & phân tích vĩ mô
-│   ├── event_watcher.py       📅 Quét CPI, FOMC, GDP theo ngày
-│   └── news_analyzer.py       📈 Phân tích & format tác động
-│
-├── marketdata/                📈 Giá, volume, trạng thái thị trường
-│   ├── price_fetcher.py       💰 Lấy giá USDT/VND từ ONUS hoặc Nami
-│   ├── volume_tracker.py      🔎 Biến động volume theo phiên
-│   └── market_snapshot.py     🖼 Tổng quan thị trường hiện tại
-│
-├── messages/                  ✉️ Format tín hiệu gửi cho người dùng
-│   ├── templates.py           📋 Mẫu Entry / SL / TP
-│   └── emoji_map.py           😀 Gắn biểu tượng theo sức mạnh & chiến thuật
-│
-├── utils/                     🔧 Hàm tiện ích dùng chung
-│   ├── formatter.py           🔢 Làm tròn số, định dạng phần trăm
-│   ├── mid_tracker.py         🔁 Chống phản hồi lặp khi user spam
-│   └── json_utils.py          📁 Đọc/ghi JSON an toàn
-│
-├── data/                      🗂 Dữ liệu tạm thời & trạng thái bot
-│   ├── user_registry.json     ✅ Người dùng đã xác nhận “Có”
-│   ├── processed_mids.json    🔁 Tin nhắn đã phản hồi để tránh spam
-│   ├── macro_schedule.json    📅 Cache lịch tin vĩ mô
-│   └── volume_state.json      📊 Trạng thái volume từng phiên
+├── main.py                     🚀 Khởi động Flask, webhook Messenger, nhận tin từ người dùng
+├── init_files.py               🔧 Tạo file JSON trạng thái cần thiết khi bot khởi chạy
+├── requirements.txt            📦 Khai báo thư viện: Flask, requests, dotenv, gunicorn...
+├── Procfile                    ⚙️ Cấu hình lệnh khởi động bot trên dịch vụ hosting
+├── .env.example                🔐 Mẫu cấu hình môi trường: Messenger token, PORT...
+
+├── messenger/                  💬 Xử lý gửi/nhận tin nhắn từ người dùng qua Messenger
+│   ├── mess_handler.py         📥 Xử lý tin nhắn đầu vào: lần đầu chào hỏi, phản hồi câu hỏi
+│   ├── message_sender.py       📤 Format & gửi bản tin tín hiệu đến người dùng
+│   └── registry_manager.py     ✅ Quản lý danh sách user đã xác nhận tham gia bot
+
+├── scheduler/                  ⏰ Gửi nội dung theo thời điểm trong ngày
+│   ├── cron_daemon.py          🧭 Bộ kiểm tra giờ & gọi tác vụ đúng thời điểm
+│   ├── macro_reporter.py       🌅 Gửi bản tin sáng lúc 06:00 (tỷ giá, lịch kinh tế, xu hướng BTC)
+│   ├── macro_advisor.py        🔔 Cảnh báo tin vĩ mô khi có CPI, FOMC, NFP...
+│   ├── signals.py              📡 Gửi batch tín hiệu mỗi 15–30 phút: 5 lệnh MUA/BÁN cho ONUS
+│   ├── end_day_report.py       📊 Báo cáo tổng hợp lúc 22:00 (hiệu suất, R:R, lời chúc ngủ ngon)
+│   └── reset_state.py          🔄 Reset volume/funding/status lúc 23:00 để chuẩn bị ngày mới
+
+├── core/                       🔍 Xử lý tín hiệu giao dịch kỹ thuật từ dữ liệu ONUS
+│   ├── signal_generator.py     🔁 Sinh lệnh Long/Short từ volume, funding, RSI, trend
+│   ├── signal_analyzer.py      📊 Chấm điểm tín hiệu → tính xác suất MUA/BÁN
+│   ├── coin_filter.py          🧹 Lọc coin đủ điều kiện giao dịch mỗi phiên
+│   └── strategy_classifier.py  🧠 Phân loại Swing / Scalp + kiểu lệnh Market / Limit
+
+├── macro/                      🌍 Phân tích tin vĩ mô ảnh hưởng đến crypto
+│   ├── event_watcher.py        📅 Quét & lên lịch tin tức CPI, FOMC, GDP theo ngày
+│   └── news_analyzer.py        📈 Format tin & đánh giá tác động lên thị trường ONUS
+
+├── marketdata/                 📈 Dữ liệu giá & volume từ sàn ONUS
+│   ├── price_fetcher.py        💰 Lấy giá theo VND từng đồng coin ONUS từ API
+│   ├── volume_tracker.py       🔎 Theo dõi biến động volume từng cặp ONUS
+│   └── market_snapshot.py      🖼 Lưu tổng quan dữ liệu giá, funding, spread từng phiên
+
+├── messages/                   ✉️ Trình bày bản tin gửi đẹp & dễ hiểu cho người dùng
+│   ├── templates.py            📋 Format mẫu Entry, SL, TP, R:R cho từng lệnh
+│   └── emoji_map.py            😀 Gắn biểu tượng theo sức mạnh lệnh và chiến thuật
+
+├── utils/                      🔧 Các hàm tiện ích hỗ trợ toàn hệ thống
+│   ├── formatter.py            🔢 Làm tròn số, phần trăm, tiền VND/USDT
+│   ├── mid_tracker.py          🔁 Tránh phản hồi spam khi user nhắn lặp
+│   └── json_utils.py           📁 Đọc / ghi JSON an toàn để lưu trạng thái
+
+├── data/                       🗂 Dữ liệu trạng thái tạm của bot trong ngày
+│   ├── user_registry.json      ✅ Danh sách người dùng đã kích hoạt bot
+│   ├── processed_mids.json     🔁 Tin nhắn đã phản hồi → tránh spam
+│   ├── macro_schedule.json     📅 Tin vĩ mô đã lên lịch → không trùng
+│   ├── volume_state.json       📊 Trạng thái volume từng coin → dùng cho phân tích
+│   └── used_coins.json         🔐 Danh sách coin đã dùng hôm nay → tránh trùng tín hiệu
+
 
                
-🧠 Timeline hoạt động bot Cofure | 00:00 → 23:59
-🕒 Thời điểm	⚙️ Bot thực hiện gì
-00:00 – 05:59
-🔎 Quét sớm phiên Á nếu có volume tăng hoặc MA đảo chiều → Nếu có tín hiệu VIP mạnh → gửi ngay lệnh (Market) → Nếu thị trường yên lặng → bot nghỉ tạm 📥 Webhook vẫn hoạt động → người mới nhắn tin vẫn được ghi nhận | | 06:00 | 📨 Gửi bản tin sáng cho toàn bộ người dùng → Chào ngày mới 🧠 → Tỷ giá USDT/VND theo sàn người dùng → Lịch kinh tế hôm nay: tin CPI, FOMC, GDP… → Nhận định xu hướng BTC / Altcoin | | 07:00 | 🔔 Quét lịch tin tức vĩ mô → Nếu có tin trọng yếu → bot báo thời điểm + tác động → Nếu không có tin → gửi cảnh báo: “Không có tin quan trọng” | | 06:00 – 22:00 | 📡 Chu kỳ gửi tín hiệu Futures → Cứ mỗi 15–30 phút → bot gửi 1 batch gồm 5 lệnh → Cấu trúc batch: 3 Long + 2 Short → Gắn rõ chiến thuật: Scalping hoặc Swing → Hiển thị giá theo sàn ONUS hoặc Nami: cả VND + USD → Lệnh yếu hoặc thị trường sideway → gắn 📌 Tham khảo → Hiện rõ kiểu lệnh ngay cạnh Entry: (Market) hoặc (Limit) ⚡ Nếu phát hiện lệnh VIP / biến động mạnh → gửi tức thì không chờ batch | | Giờ tin ra (bất kỳ) | 🔔 Bot phản ứng tức thì nếu có tin CPI, FOMC, NFP… → Phân tích tác động đến thị trường → Gửi cảnh báo + tạo lệnh mới nếu cần | | 22:00 – 23:00 | 📊 Gửi báo cáo cuối ngày → Thống kê các lệnh MUA / BÁN đã gửi → Trung bình R:R → Gửi lời chúc ngủ ngon 🌙 | | 23:00 – 23:59 | 🔄 Reset dữ liệu → Volume, funding, MA, trạng thái coin → Lọc top coin tiềm năng → Lên lịch bản tin sáng 06:00 hôm sau |
+🧠 Timeline chức năng bot Cofure trong ngày
+🕒 Thời gian	⚙️ Chức năng bot thực hiện
+00:00 – 05:59	🔎 Quét phiên Á sớm: nếu có volume tăng hoặc MA đảo chiều → sinh tín hiệu VIP ngay<br>📥 Webhook vẫn hoạt động để ghi nhận người dùng mới
+06:00	📨 Gửi bản tin sáng đến toàn bộ user:
+– Tỷ giá USDT/VND theo ONUS – Lịch tin tức vĩ mô (CPI, FOMC, GDP...) – Nhận định xu hướng BTC & Altcoin trong ngày | | 07:00 | 🔔 Quét lịch vĩ mô → cảnh báo tin trọng yếu nếu có (CPI, FOMC...) hoặc thông báo “không có tin quan trọng” | | 06:00 – 22:00 | 📡 Gửi batch lệnh Futures định kỳ mỗi 15–30 phút: – Mỗi batch gồm 5 lệnh: 3 Long + 2 Short – Định dạng rõ MUA / BÁN (Market/Limit) – Hiển thị giá ONUS (VND) + R:R ⚡ Nếu phát hiện lệnh VIP → gửi ngay không cần chờ | | Giờ tin ra (bất kỳ) | 🔔 Phân tích tác động tin tức → sinh tín hiệu mới nếu cần → gửi cảnh báo thời điểm nhạy cảm | | 19:30 – 21:00 | 📝 Gom lệnh mạnh theo nhóm → gửi bản tin tổng hợp cuối ngày (tuỳ chọn) | | 22:00 | 📊 Gửi báo cáo: thống kê lệnh đã gửi, tỷ lệ R:R trung bình, hiệu suất trong ngày + lời chúc ngủ ngon 🌙 | | 23:00 – 23:59 | 🔄 Reset dữ liệu: volume, funding, trạng thái coin → chuẩn bị cho bản tin sáng hôm sau 06:00 |
+
+🎯 Bot còn tự động:
+Gửi phản hồi cho người dùng mới khi họ nhắn tin lần đầu
+
+Cảnh báo tin nóng bất kỳ giờ nào (ví dụ CPI bất ngờ, FOMC gây dump)
+
+Gửi lệnh tức thời nếu thị trường có biến động mạnh (không chờ lịch)
+
+Lọc coin ONUS có volume đủ, funding hợp lý, RSI đảo chiều
+
+Phân loại chiến thuật lệnh: Scalping, Swing, Market, Limit

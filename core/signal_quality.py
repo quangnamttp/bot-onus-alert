@@ -6,9 +6,7 @@ def evaluate_risk(rsi, volume, funding):
         score += 1
     if abs(funding) > 0.03:
         score += 1
-    return score  # 0 = an toàn, 3 = rủi ro cao
+    return score
 
 def check_entry_conditions(signal):
-    if signal.get("nr", 1) >= 1 and signal.get("risk", 0) <= 2:
-        return True
-    return False
+    return signal.get("nr", 1) >= 1 and signal.get("risk", 0) <= 2

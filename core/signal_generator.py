@@ -11,10 +11,18 @@ from market.price_reader import get_price
 def generate_signals(coins):
     strategy = get_strategy()
     signals = []
+    used_batch = set()
 
     for coin in coins:
-        if is_used(coin):
+        if coin in used_batch:
             continue
+        if is_used(coin):
+            rsi = get_rsi(coin)
+            volume = get_volume(coin)
+            funding = get_funding(coin)
+            score = evaluate_risk(rsi, volume, funding)
+            if score > 2:
+                continue
 
         entry = strategy.get_entry_price(coin) or get_price(coin)
         tp, sl = calc_tp_sl(entry, strategy.risk_ratio)
@@ -50,6 +58,7 @@ def generate_signals(coins):
             signal["tag"] = "Xác suất cao"
 
         signals.append(signal)
+        used_batch.add(coin)
         mark_used(coin)
 
     return signals

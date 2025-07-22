@@ -51,19 +51,114 @@ cofure_bot/
 
 
                
-🧠 Timeline chức năng bot Cofure trong ngày
-🕒 Thời gian	⚙️ Chức năng bot thực hiện
-00:00 – 05:59	🔎 Quét phiên Á sớm: nếu có volume tăng hoặc MA đảo chiều → sinh tín hiệu VIP ngay<br>📥 Webhook vẫn hoạt động để ghi nhận người dùng mới
-06:00	📨 Gửi bản tin sáng đến toàn bộ user:
-– Tỷ giá USDT/VND theo ONUS – Lịch tin tức vĩ mô (CPI, FOMC, GDP...) – Nhận định xu hướng BTC & Altcoin trong ngày | | 07:00 | 🔔 Quét lịch vĩ mô → cảnh báo tin trọng yếu nếu có (CPI, FOMC...) hoặc thông báo “không có tin quan trọng” | | 06:00 – 22:00 | 📡 Gửi batch lệnh Futures định kỳ mỗi 15–30 phút: – Mỗi batch gồm 5 lệnh: 3 Long + 2 Short – Định dạng rõ MUA / BÁN (Market/Limit) – Hiển thị giá ONUS (VND) + R:R ⚡ Nếu phát hiện lệnh VIP → gửi ngay không cần chờ | | Giờ tin ra (bất kỳ) | 🔔 Phân tích tác động tin tức → sinh tín hiệu mới nếu cần → gửi cảnh báo thời điểm nhạy cảm | | 19:30 – 21:00 | 📝 Gom lệnh mạnh theo nhóm → gửi bản tin tổng hợp cuối ngày (tuỳ chọn) | | 22:00 | 📊 Gửi báo cáo: thống kê lệnh đã gửi, tỷ lệ R:R trung bình, hiệu suất trong ngày + lời chúc ngủ ngon 🌙 | | 23:00 – 23:59 | 🔄 Reset dữ liệu: volume, funding, trạng thái coin → chuẩn bị cho bản tin sáng hôm sau 06:00 |
+*****Công dụng bot*****
+phần 1:🔔 Khi người dùng lần đầu nhắn tin Messenger:
 
-🎯 Bot còn tự động:
-Gửi phản hồi cho người dùng mới khi họ nhắn tin lần đầu
+1️⃣ Bot gửi lời chào:
+“Chào bạn 👋 Mình là Cofure — trợ lý gửi tín hiệu giao dịch thị trường ONUS.  
+Bạn có muốn nhận bản tin & tín hiệu mỗi ngày không ạ?”
 
-Cảnh báo tin nóng bất kỳ giờ nào (ví dụ CPI bất ngờ, FOMC gây dump)
+2️⃣ Hiển thị lựa chọn:
+✅ Đồng ý  
+❌ Từ chối
 
-Gửi lệnh tức thời nếu thị trường có biến động mạnh (không chờ lịch)
+→ Nếu chọn ✅:
+• Bot phản hồi:
+“Bạn đã đăng ký nhận tín hiệu rồi nha!  
+Hiện tại bạn đang chờ xét duyệt từ [Trương Tấn Phương](https://fb.com/quangnamttp)”  
+• Lưu trạng thái: `approved = false`
 
-Lọc coin ONUS có volume đủ, funding hợp lý, RSI đảo chiều
+→ Nếu chọn ❌:
+• Bot phản hồi lịch sự:
+“Không sao đâu, bạn có thể bật lại bất kỳ lúc nào nha 😊”
 
-Phân loại chiến thuật lệnh: Scalping, Swing, Market, Limit
+3️⃣ Sau khi admin xét duyệt thủ công:
+• Bot cập nhật trạng thái `approved = true`  
+• Người dùng bắt đầu nhận bản tin & tín hiệu hằng ngày
+
+🔒 Người chưa được duyệt:
+→ Không nhận bất kỳ bản tin, tín hiệu hay cảnh báo nào  
+→ Đảm bảo không spam, không gây khó chịu với user mới
+👤 Nếu user không muốn nhận tín hiệu nữa:
+
+1️⃣ Khi user nhắn:
+→ “Tắt tín hiệu” / “Không nhận nữa” / “Stop” / “Tạm nghỉ”…
+
+2️⃣ Bot xử lý:
+• Gửi xác nhận:
+“Đã ghi nhận yêu cầu. Tín hiệu sẽ tạm dừng gửi từ bây giờ nha!”
+
+• Cập nhật trạng thái: `signal_active = false`  
+• Dừng toàn bộ bản tin, lệnh, cảnh báo
+
+3️⃣ Nếu user muốn bật lại:
+→ Nhắn: “Bật tín hiệu lại” / “Muốn nhận lại”  
+→ Bot khôi phục: `signal_active = true`  
+→ Gửi tin xác nhận: “Bạn đã bật lại chế độ nhận tín hiệu rồi nha!”
+
+Phần2: 🕒 Khung giờ hoạt động: 06:00 → 22:00 mỗi ngày
+
+🌞 06:00 — Chào buổi sáng + bản tin đầu ngày
+• Tin nhắn cá nhân hóa: “Chào buổi sáng nhé {Tên} ☀️…”  
+• Nội dung:
+   ▸ Giá VNĐ BTC / ETH / SOL  
+   ▸ Funding, volume, xu hướng  
+• Dùng emoji nhẹ → tạo thiện cảm
+
+📅 07:00 — Lịch tin vĩ mô
+• Nếu không có tin:
+→ “📅 Hôm nay không có tin tức vĩ mô quan trọng.  
+Chúc bạn một ngày trade thật thành công nha!”
+
+• Nếu có tin mạnh (CPI, FOMC...):
+→ Bot gửi:
+   ▸ Giờ ra tin  
+   ▸ Loại tin  
+   ▸ Mức ảnh hưởng  
+   ▸ Gợi ý chiến lược → đứng ngoài hoặc chờ thời điểm
+
+⚡ Mỗi 15–30 phút từ 06h → 22h — bot gửi 5 lệnh:
+• Gồm 3 Scalping + 2 Swing  
+• Mỗi lệnh có:
+   ✔️ Loại: Market / Limit  
+   ✔️ Entry / TP / SL bằng VNĐ  
+   ✔️ Lý do kỹ thuật: volume, funding, mô hình, RSI  
+   ✔️ Độ mạnh:
+      📊 Mạnh ≥70%  
+      📊 Tiêu chuẩn 50–69%  
+      📊 Tham khảo <50%
+
+⏰ Tín hiệu khẩn — ngoài chu kỳ
+• Nếu volume / funding tăng bất thường → bot kích hoạt  
+• Quét tất cả coin trên ONUS Futures  
+• Báo TRƯỚC khi giá chạy → giúp user vào sớm đón sóng  
+• Tin nhắn ví dụ:
+  “⏰ Funding CHI vừa nghiêng Long mạnh, volume tăng đều.  
+  Có thể cân nhắc MUA quanh vùng 32.800 VNĐ trước khi breakout.”
+
+🧠 Dự báo sóng sớm — không đợi giá chạy
+• Bot phát hiện mô hình tích lũy  
+• Spread co hẹp, funding lệch, RSI tích cực  
+→ Nếu các yếu tố đồng thuận → bot sinh lệnh trước cây nến bật
+
+🕯️ Xử lý khi tin vĩ mô ra
+1️⃣ Bot gửi số liệu:  
+→ CPI thực tế / Dự báo / Kỳ trước  
+→ Lãi suất FED / Dự báo thị trường
+
+2️⃣ Phân tích phản ứng:
+→ Funding / volume / spread / RSI biến động thế nào?
+
+3️⃣ Gửi lời khuyên:
+→ Ví dụ:
+  “🕯️ CPI thấp hơn dự báo → market tích cực.  
+  Funding BTC đang tăng nhẹ → có thể Long sau 5 phút nếu ổn định.”
+
+→ Nếu thị trường rõ xu hướng → bot sinh lệnh chiến lược
+
+🌒 22:00 — Tổng kết phiên
+• Báo hiệu suất TP / SL  
+• Biểu đồ tỷ lệ MUA / BÁN  
+• Dự báo ngày mai  
+• Lời chúc ngủ ngon:
+→ “🌙 Cảm ơn bạn đã đồng hành cùng Cofure hôm nay. 😴 Ngủ ngon nha!”

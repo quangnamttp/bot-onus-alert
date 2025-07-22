@@ -1,48 +1,21 @@
-from messenger.message_sender import send_message
-from messenger.registry_manager import (
-    is_registered, mark_registered,
-    remove_from_registry
-)
-from utils.mid_tracker import has_processed, mark_processed
+from messenger.registry_manager import register_user, get_user_status
+from messenger.signal_toggle import check_toggle_request
+from utils.vnđ_formatter import format_name
 
-def handle_message(event):
-    sender_id = event['sender']['id']
-    message_text = event['message'].get('text', '').strip().lower()
-    mid = event['message'].get('mid', '')
+def handle_new_message(user_id, user_name, message_text):
+    status = get_user_status(user_id)
+    if not status:
+        register_user(user_id, user_name)
+        return {
+            "text": f"Chào bạn 👋 Mình là Cofure — trợ lý gửi tín hiệu giao dịch thị trường ONUS.\n"
+                    f"Bạn có muốn nhận bản tin & tín hiệu mỗi ngày không ạ?",
+            "quick_replies": ["✅ Đồng ý", "❌ Từ chối"]
+        }
 
-    if has_processed(mid):
-        return
-    mark_processed(mid)
+    # Check if message is toggle request
+    toggle_response = check_toggle_request(user_id, message_text)
+    if toggle_response:
+        return { "text": toggle_response }
 
-    # ✅ Nếu người dùng đã kích hoạt bot → không hỏi lại
-    if is_registered(sender_id):
-        send_message(sender_id, "✅ Bot Cofure đang hoạt động! Tín hiệu sẽ gửi tự động theo từng khung giờ 🚀")
-        return
-
-    # 🛑 Nếu người dùng muốn huỷ bot
-    if message_text in ["huỷ bot", "tắt bot", "stop", "cancel"]:
-        remove_from_registry(sender_id)
-        send_message(sender_id, "❌ Bạn đã tắt bot Cofure. Nếu muốn bật lại, hãy nhắn 'Có'.")
-        return
-
-    # 👋 Lời chào / tin nhắn ngắn → hỏi xác nhận
-    if message_text in ["", "hi", "hello", "chào", "bắt đầu", "start"] or len(message_text) < 5:
-        send_message(sender_id,
-            "👋 Chào bạn! Đây là bot Cofure gửi tín hiệu crypto tự động.\n🧠 Bạn có muốn nhận tín hiệu không?\n🟩 Trả lời 'Có' để kích hoạt\n⬜ Trả lời 'Không' để từ chối"
-        )
-        return
-
-    # ✅ Người dùng đồng ý nhận tín hiệu
-    if message_text == "có":
-        mark_registered(sender_id)
-        send_message(sender_id,
-            "✅ Bạn đã đồng ý nhận tín hiệu từ bot Cofure! Bắt đầu từ bản tin sáng lúc 06:00 ⏰"
-        )
-        return
-
-    # 🚫 Người dùng từ chối
-    if message_text == "không":
-        send_message(sender_id,
-            "☁️ Bạn đã từ chối nhận tín hiệu. Nếu muốn bắt đầu lại, hãy nhắn 'Có'."
-        )
-        return
+    # Default fallback
+    return { "text": "Bạn đã đăng ký rồi nha 😊 Nếu cần tắt/bật tín hiệu có thể nhắn: “Tắt tín hiệu” hoặc “Bật tín hiệu lại”." }

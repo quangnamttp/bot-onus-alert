@@ -1,6 +1,6 @@
 from messenger.registry_manager import register_user, get_user_status
 from messenger.signal_toggle import check_toggle_request
-from utils.vnđ_formatter import format_name
+from utils.vnđ_formatter import format_vnd  ✅ nếu bạn dùng format số tiền
 
 def handle_new_message(user_id, user_name, message_text):
     status = get_user_status(user_id)

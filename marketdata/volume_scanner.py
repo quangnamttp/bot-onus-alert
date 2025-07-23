@@ -1,29 +1,13 @@
-import random
+# cofure_bot/utils/volume_scanner.py
 
-def get_volume_data():
-    coins = get_all_futures()
-    result = {}
-    for coin in coins:
-        volume = random.randint(5, 50)
-        result[coin] = {
-            "change": volume,            # phần trăm thay đổi volume
-            "bias": "Long" if volume % 2 == 0 else "Short"
-        }
-    return result
+def scan_high_volume(coin_data, threshold=25):
+    strong_volume_coins = []
 
-def get_surge_volume():
-    # Quét những coin có volume tăng bất thường → sinh lệnh khẩn
-    coins = get_all_futures()
-    result = {}
-    for coin in coins:
-        surge = random.randint(30, 80)
-        if surge > 50:
-            result[coin] = {
-                "change": surge,
-                "bias": "Long" if surge % 2 == 0 else "Short"
-            }
-    return result
+    for coin in coin_data:
+        if coin["volume_change"] >= threshold:
+            strong_volume_coins.append({
+                "symbol": coin["symbol"],
+                "volume_change": coin["volume_change"]
+            })
 
-def get_accumulating_coins():
-    coins = get_all_futures()
-    return [c for c in coins if random.random() < 0.3]
+    return strong_volume_coins

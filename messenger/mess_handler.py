@@ -7,7 +7,7 @@ from messenger.registry_manager import (
 from messenger.signal_toggle import check_toggle_request
 from messenger.send_message import send_message
 
-ADMIN_ID = "100036886332606"  # ← ID Facebook cá nhân của bạn
+ADMIN_ID = "24110537551888914"  # ← ID Facebook cá nhân thực của bạn
 
 def handle_new_message(user_id, user_name, message_text):
     status = get_user_status(user_id)

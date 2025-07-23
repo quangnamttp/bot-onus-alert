@@ -1,11 +1,11 @@
 from messenger.send_message import send_message, send_quick_reply
 
-ADMIN_ID = "24110537551888914"  # ← ID admin thực của bạn
+ADMIN_ID = "24110537551888914"  # ← ID của bạn Trương
 DUYET_OK = "✅ Bạn đã được xét duyệt! Tín hiệu sẽ gửi mỗi ngày."
 TUCHOI_MSG = "❌ Yêu cầu bị từ chối. Bạn có thể thử lại sau."
 
 def handle_new_message(user_id, user_name, message_text):
-    # ✅ Nếu là phản hồi nút (Quick Reply)
+    # ✅ Nếu là phản hồi từ nút Quick Reply
     if isinstance(message_text, dict):
         payload = message_text.get("quick_reply", {}).get("payload")
         if payload:
@@ -29,9 +29,9 @@ def handle_new_message(user_id, user_name, message_text):
                 target_id = payload.split("_")[1]
                 send_message(target_id, TUCHOI_MSG)
                 send_message(user_id, f"🛑 Đã từ chối người dùng {target_id}.")
-            return  # ✅ xử lý xong rồi, không gửi chào lại
+            return  # ✅ xử lý xong, không gửi lại tin chào
 
-    # ✅ Nếu là tin nhắn văn bản bình thường → gửi chào với nút
+    # ✅ Nếu là tin nhắn văn bản bình thường → gửi chào với nút đăng ký
     send_quick_reply(
         user_id,
         "Chào bạn 👋 Mình là Cofure — trợ lý tín hiệu ONUS.\nBạn có muốn nhận bản tin mỗi ngày không?",

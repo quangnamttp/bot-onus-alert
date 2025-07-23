@@ -5,7 +5,7 @@ from messenger.send_message import send_message, send_quick_reply
 ADMIN_ID = "24110537551888914"
 APPROVED_FILE = "data/approved_users.json"
 
-# ✅ Hàm tải danh sách đã duyệt
+# ✅ Tải danh sách đã duyệt từ file
 def load_approved_users():
     if not os.path.exists(APPROVED_FILE):
         return set()
@@ -15,16 +15,16 @@ def load_approved_users():
     except Exception:
         return set()
 
-# ✅ Hàm lưu danh sách đã duyệt
+# ✅ Lưu danh sách đã duyệt vào file
 def save_approved_users(user_set):
     with open(APPROVED_FILE, "w") as f:
         json.dump(list(user_set), f)
 
-# ✅ Hàm xử lý tin nhắn hoặc phản hồi nút nhấn
+# ✅ Xử lý tin nhắn từ Messenger
 def handle_new_message(user_id, user_name, message_text):
     approved_users = load_approved_users()
 
-    # ✅ Nếu là phản hồi Quick Reply (dict chứa payload)
+    # Nếu là phản hồi từ nút bấm Quick Reply
     if isinstance(message_text, dict):
         payload = message_text.get("quick_reply", {}).get("payload")
         if payload:
@@ -59,9 +59,9 @@ def handle_new_message(user_id, user_name, message_text):
                 target_id = payload.split("_")[1]
                 send_message(target_id, "❌ Yêu cầu bị từ chối. Bạn có thể thử lại sau.")
                 send_message(user_id, f"🛑 Đã từ chối người dùng {target_id}.")
-            return  # ✅ Không gửi lại tin chào sau khi xử lý nút
+            return  # ✅ Không lặp lại tin chào
 
-    # ✅ Nếu là tin nhắn văn bản thường → gửi lời chào kèm nút
+    # Nếu là tin nhắn văn bản bình thường → gửi lời chào kèm nút
     send_quick_reply(
         user_id,
         "Chào bạn 👋 Mình là Cofure — trợ lý tín hiệu ONUS.\nBạn có muốn nhận bản tin mỗi ngày không?",

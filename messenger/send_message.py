@@ -1,6 +1,6 @@
 import requests
 
-PAGE_ACCESS_TOKEN = "YOUR_PAGE_ACCESS_TOKEN"
+PAGE_ACCESS_TOKEN = "EAAUfsOzztLEBPKQKkm5BuLuBXMXzUfsEb6UZAfTZBRi8YZCkog3GlrcZB3EgGVfS3pGeO7s0s1x0nsWQBkyZCACE3fyl7dluU2rFu6raEk7rCPzDFQBHCwZChttww36WIKfQ6Ua3ZBpyNfCadOkG8AzCKfiIcbLAei8P7ql1b2eAnKITJohDpauAh0l0ZAZCesfusIJhyJRwveQZDZD"
 
 def send_message(recipient_id, message_text):
     payload = {

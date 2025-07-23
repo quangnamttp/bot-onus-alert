@@ -24,12 +24,10 @@ def webhook():
             user_name = "Trader"  # Có thể mở rộng lấy tên thật nếu cần
 
             if msg_text:
-                response = handle_new_message(user_id, user_name, msg_text)
-                print(f"[main] → {user_id}: {response['text']}")  # ✅ Chỉ log, không gửi lại
+                handle_new_message(user_id, user_name, msg_text)
+                print(f"[main] → {user_id}: Tin nhắn đã xử lý.")
     return "OK", 200
 
 # ✅ Khởi chạy server Flask
 if __name__ == "__main__":
-    import os
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True, port=5000)

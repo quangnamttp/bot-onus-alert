@@ -7,7 +7,7 @@ from messenger.mess_handler import handle_new_message
 from utils.config_loader import VERIFY_TOKEN
 
 # ✅ Import các module gửi tín hiệu theo lịch
-from scheduler.morning_report import send_morning_greeting
+from scheduler.morning_report import send_morning_report
 from scheduler.news_schedule import send_macro_news
 from scheduler.signal_dispatcher import loop_send_trade_signals
 from scheduler.summary_report import send_night_summary
@@ -49,7 +49,7 @@ def webhook():
 
 # ✅ Khởi chạy lịch gửi tự động phần 2
 def start_scheduler():
-    schedule.every().day.at("06:00").do(send_morning_greeting)
+    schedule.every().day.at("06:00").do(send_morning_report)
     schedule.every().day.at("07:00").do(send_macro_news)
     schedule.every(20).minutes.do(loop_send_trade_signals)
     schedule.every().day.at("22:00").do(send_night_summary)

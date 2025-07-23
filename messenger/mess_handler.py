@@ -7,27 +7,27 @@ from messenger.registry_manager import (
 from messenger.signal_toggle import check_toggle_request
 from messenger.send_message import send_message
 
-ADMIN_ID = "100036886332606"  # ← Messenger ID của bạn
+ADMIN_ID = "100036886332606"  # ← ID Facebook cá nhân của bạn
 
 def handle_new_message(user_id, user_name, message_text):
     status = get_user_status(user_id)
 
-    # 🟢 User mới → đăng ký
+    # 🟢 Nếu user mới → đăng ký + chào hỏi
     if not status:
         register_user(user_id, user_name)
         reply = (
             "Chào bạn 👋 Mình là Cofure — trợ lý gửi tín hiệu giao dịch thị trường ONUS.\n"
             "Bạn có muốn nhận bản tin & tín hiệu mỗi ngày không?\n"
-            "👉 Nếu đồng ý, hãy nhắn: “✅ Đồng ý”"
+            "👉 Nếu đồng ý, hãy nhắn: “Đồng ý”"
         )
         send_message(user_id, reply)
         return
 
-    # ✅ User nhấn “Đồng ý” → gửi xét duyệt cho admin
-    if message_text.strip() == "✅ Đồng ý":
+    # ✅ Nếu tin nhắn có nội dung “đồng ý” → gửi xét duyệt
+    if "đồng ý" in message_text.strip().lower():
         send_message(user_id,
-            "📨 Yêu cầu của bạn đã được gửi tới admin để xét duyệt.\n"
-            "Vui lòng đợi admin Trương Tấn Phương xác nhận yêu cầu của bạn."
+            "📨 Yêu cầu của bạn đã được ghi nhận và đang chờ xét duyệt từ admin.\n"
+            "Vui lòng đợi admin Trương Tấn Phương xác nhận yêu cầu của bạn nhé ✅"
         )
         print(f"[XétDuyệt] Gửi xét duyệt đến ADMIN_ID: {ADMIN_ID}")
         send_message(ADMIN_ID,
@@ -36,7 +36,7 @@ def handle_new_message(user_id, user_name, message_text):
         )
         return
 
-    # 🎯 Admin duyệt user
+    # 🎯 Xét duyệt từ admin
     if message_text.startswith("Duyệt "):
         target_id = message_text.split("Duyệt ")[1].strip()
         approve_user(target_id)
@@ -47,7 +47,7 @@ def handle_new_message(user_id, user_name, message_text):
         send_message(user_id, f"✅ Đã xét duyệt cho {target_id}.")
         return
 
-    # ❌ Admin từ chối user
+    # ❌ Từ chối từ admin
     if message_text.startswith("Từ chối "):
         target_id = message_text.split("Từ chối ")[1].strip()
         send_message(target_id,
@@ -57,7 +57,7 @@ def handle_new_message(user_id, user_name, message_text):
         send_message(user_id, f"🚫 Đã từ chối yêu cầu của {target_id}.")
         return
 
-    # 🔁 Bật/tắt tín hiệu
+    # 🔁 Bật/tắt tín hiệu nếu có
     toggle_response = check_toggle_request(user_id, message_text)
     if toggle_response:
         send_message(user_id, toggle_response)
@@ -68,5 +68,5 @@ def handle_new_message(user_id, user_name, message_text):
         send_message(user_id, "🤖 Bạn đã được xét duyệt rồi, tín hiệu ONUS sẽ tiếp tục được gửi mỗi ngày.")
         return
 
-    # 🛑 Nếu chưa duyệt và không phải “✅ Đồng ý” → KHÔNG gửi tin gì
+    # 🛑 Nếu chưa được duyệt → không phản hồi lặp
     return

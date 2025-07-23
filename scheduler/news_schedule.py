@@ -1,19 +1,11 @@
-from macro.forex_factory_fetcher import get_today_news
-from messenger.registry_manager import load_user_status, is_approved_and_active
+# cofure_bot/scheduler/news_schedule.py
 
-def send_macro_news():
-    news_list = get_today_news()
-    if not news_list:
-        news_msg = "📅 Hôm nay không có tin tức vĩ mô quan trọng.\nChúc bạn một ngày trade thật thành công nha!"
-    else:
-        news_msg = "📅 Lịch tin vĩ mô hôm nay:\n" + "\n".join([
-            f"🕒 {n['time']} • {n['title']} • Ảnh hưởng: {n['impact']}" for n in news_list
-        ])
+from macro.forex_factory_fetcher import fetch_macro_news
+from macro.macro_advisor import generate_macro_strategy
+from messenger.send_message import send_message
+from utils.config_loader import MY_USER_ID
 
-    user_data = load_user_status()
-    for user_id in user_data:
-        if is_approved_and_active(user_id):
-            send_message(user_id, news_msg)
-
-def send_message(user_id, message):
-    print(f"[news_schedule] → {user_id}: {message}")
+def send_macro_news(user_id):
+    news = fetch_macro_news()
+    message = generate_macro_strategy(news)
+    send_message(user_id, message)

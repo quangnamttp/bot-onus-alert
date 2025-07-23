@@ -21,11 +21,11 @@ def webhook():
         for msg_event in entry.get("messaging", []):
             user_id = msg_event["sender"]["id"]
             msg_text = msg_event.get("message", {}).get("text", "")
-            user_name = "Trader"  # Có thể mở rộng lấy tên thật nếu cần
+            user_name = "Trader"  # 👤 Tên mặc định, có thể mở rộng lấy tên thật sau này
 
             if msg_text:
                 handle_new_message(user_id, user_name, msg_text)
-                print(f"[main] → {user_id}: Tin nhắn đã xử lý.")
+                print(f"[main] → {user_id}: tin nhắn đã được xử lý.")
     return "OK", 200
 
 # ✅ Khởi chạy server Flask

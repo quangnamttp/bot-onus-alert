@@ -1,7 +1,7 @@
 import json
 import os
 
-DATA_FILE = "user_status.json"  # 📁 Bot lưu trạng thái người dùng ở đây
+DATA_FILE = "user_status.json"  # 📁 File lưu trạng thái từng user
 
 def load_data():
     if not os.path.exists(DATA_FILE):

@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request
 from messenger.mess_handler import handle_new_message
 from utils.config_loader import VERIFY_TOKEN
@@ -20,14 +21,24 @@ def webhook():
     for entry in data.get("entry", []):
         for msg_event in entry.get("messaging", []):
             user_id = msg_event["sender"]["id"]
-            msg_text = msg_event.get("message", {}).get("text", "")
-            user_name = "Trader"  # 👤 Tên mặc định, có thể mở rộng lấy tên thật sau này
+            user_name = "Trader"
 
-            if msg_text:
-                handle_new_message(user_id, user_name, msg_text)
-                print(f"[main] → {user_id}: tin nhắn đã được xử lý.")
+            message = msg_event.get("message", {})
+            if not message:
+                continue
+
+            # 📌 Nếu có phản hồi từ Quick Reply → truyền dict nguyên vẹn
+            if "quick_reply" in message:
+                handle_new_message(user_id, user_name, message)
+            else:
+                msg_text = message.get("text", "")
+                if msg_text:
+                    handle_new_message(user_id, user_name, msg_text)
+
+            print(f"[main] → {user_id}: tin nhắn đã được xử lý.")
     return "OK", 200
 
-# ✅ Khởi chạy server Flask
+# ✅ Khởi chạy server Flask theo cổng Render
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

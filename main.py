@@ -1,6 +1,5 @@
 from flask import Flask, request
 from messenger.mess_handler import handle_new_message
-from messenger.send_message import send_message
 from utils.config_loader import VERIFY_TOKEN
 
 app = Flask(__name__)
@@ -26,8 +25,7 @@ def webhook():
 
             if msg_text:
                 response = handle_new_message(user_id, user_name, msg_text)
-                send_message(user_id, response["text"])  # ✅ Gửi phản hồi thực tế
-                print(f"[main] → {user_id}: {response['text']}")
+                print(f"[main] → {user_id}: {response['text']}")  # ✅ Chỉ log, không gửi lại
     return "OK", 200
 
 # ✅ Khởi chạy server Flask

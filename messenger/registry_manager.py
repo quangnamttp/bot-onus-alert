@@ -1,46 +1,37 @@
 import json
-from datetime import datetime
-from utils.logger import log
+import os
 
-USER_FILE = "data/user_status.json"
+DATA_FILE = "user_status.json"  # 📌 File lưu trạng thái người dùng
 
-def load_user_status():
-    try:
-        with open(USER_FILE, "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
+def load_data():
+    if not os.path.exists(DATA_FILE):
         return {}
+    with open(DATA_FILE, "r") as f:
+        return json.load(f)
 
-def save_user_status(data):
-    try:
-        with open(USER_FILE, "w") as f:
-            json.dump(data, f, indent=4)
-    except Exception as e:
-        log(f"[registry_manager] Error saving user data: {e}")
+def save_data(data):
+    with open(DATA_FILE, "w") as f:
+        json.dump(data, f, indent=2)
 
-def register_user(user_id, name):
-    data = load_user_status()
-    if user_id not in data:
-        data[user_id] = {
-            "name": name,
-            "approved": False,
-            "signal_active": False,
-            "joined": datetime.now().isoformat()
-        }
-        save_user_status(data)
-        log(f"[registry_manager] New user registered: {user_id}")
-
-def update_user_status(user_id, key, value):
-    data = load_user_status()
-    if user_id in data:
-        data[user_id][key] = value
-        save_user_status(data)
-        log(f"[registry_manager] Updated {key} for {user_id} → {value}")
+def register_user(user_id, user_name):
+    data = load_data()
+    data[user_id] = {
+        "name": user_name,
+        "approved": False,
+        "signal_active": False
+    }
+    save_data(data)
 
 def get_user_status(user_id):
-    data = load_user_status()
-    return data.get(user_id, None)
+    data = load_data()
+    return data.get(user_id)
 
-def is_approved_and_active(user_id):
-    user = get_user_status(user_id)
-    return user and user.get("approved") and user.get("signal_active")
+def update_user_status(user_id, key, value):
+    data = load_data()
+    if user_id in data:
+        data[user_id][key] = value
+        save_data(data)
+
+def approve_user(user_id):
+    update_user_status(user_id, "approved", True)
+    update_user_status(user_id, "signal_active", True)

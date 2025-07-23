@@ -1,65 +1,53 @@
-import os
-import schedule
-import time
-from threading import Thread
-from flask import Flask, request
-from messenger.mess_handler import handle_new_message
-from utils.config_loader import VERIFY_TOKEN
+# cofure_bot/main.py
 
-# ✅ Import các module gửi tín hiệu theo lịch
+from flask import Flask, request
+from messenger.send_message import send_message
+from scheduler.signal_dispatcher import send_trade_signals
 from scheduler.morning_report import send_morning_report
 from scheduler.news_schedule import send_macro_news
-from scheduler.signal_dispatcher import loop_send_trade_signals
-from scheduler.summary_report import send_night_summary
+from scheduler.summary_report import send_summary_report
+from scheduler.emergency_trigger import run_emergency_loop
+from utils.config_loader import VERIFY_TOKEN, MY_USER_ID
+import schedule, threading, time
 
 app = Flask(__name__)
 
-# ✅ Xác minh webhook từ Meta Developer
 @app.route("/", methods=["GET"])
+def home():
+    return "Cofure Bot đang hoạt động 🎯"
+
+@app.route("/webhook", methods=["GET"])
 def verify():
     token = request.args.get("hub.verify_token")
     challenge = request.args.get("hub.challenge")
-    if token == VERIFY_TOKEN:
-        return challenge, 200
-    return "Invalid verification token", 403
+    return challenge if token == VERIFY_TOKEN else "Sai token"
 
-# ✅ Xử lý tin nhắn POST từ Messenger
-@app.route("/", methods=["POST"])
-def webhook():
-    data = request.get_json()
-    for entry in data.get("entry", []):
-        for msg_event in entry.get("messaging", []):
-            user_id = msg_event["sender"]["id"]
-            user_name = "Trader"
-
-            message = msg_event.get("message", {})
-            if not message:
-                continue
-
-            # 📌 Nếu có phản hồi từ Quick Reply → truyền dict nguyên vẹn
-            if "quick_reply" in message:
-                handle_new_message(user_id, user_name, message)
-            else:
-                msg_text = message.get("text", "")
-                if msg_text:
-                    handle_new_message(user_id, user_name, msg_text)
-
-            print(f"[main] → {user_id}: tin nhắn đã được xử lý.")
+@app.route("/webhook", methods=["POST"])
+def receive_message():
     return "OK", 200
 
-# ✅ Khởi chạy lịch gửi tự động phần 2
 def start_scheduler():
-    schedule.every().day.at("06:00").do(send_morning_report)
-    schedule.every().day.at("07:00").do(send_macro_news)
-    schedule.every(15).minutes.do(loop_send_trade_signals)
-    schedule.every().day.at("22:00").do(send_night_summary)
+    # 🟢 Bản tin sáng + lịch vĩ mô
+    schedule.every().day.at("06:00").do(lambda: send_morning_report(MY_USER_ID))
+    schedule.every().day.at("07:00").do(lambda: send_macro_news(MY_USER_ID))
+
+    # 📊 Gửi tín hiệu phiên mỗi 15 phút từ 06h → 22h
+    for hour in range(6, 22):
+        for minute in [0, 15, 30, 45]:
+            timestamp = f"{hour:02d}:{minute:02d}"
+            schedule.every().day.at(timestamp).do(lambda: send_trade_signals(MY_USER_ID))
+
+    # 🌒 Tổng kết phiên lúc 22:00
+    schedule.every().day.at("22:00").do(lambda: send_summary_report(MY_USER_ID))
 
     while True:
         schedule.run_pending()
-        time.sleep(10)
+        time.sleep(1)
 
-# ✅ Chạy Flask + scheduler song song
+def start_emergency_radar():
+    threading.Thread(target=run_emergency_loop, daemon=True).start()
+
 if __name__ == "__main__":
-    Thread(target=start_scheduler).start()
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    start_emergency_radar()    # 🔴 Radar khẩn cấp chạy liên tục
+    threading.Thread(target=start_scheduler, daemon=True).start()
+    app.run(host="0.0.0.0", port=5000)

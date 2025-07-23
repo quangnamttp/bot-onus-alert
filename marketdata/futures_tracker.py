@@ -21,3 +21,17 @@ def get_futures_data():
         return coins
     except:
         return []
+
+def get_price_data():
+    try:
+        response = requests.get("https://api.onus.io/futures-market")
+        data = response.json()
+        result = {}
+
+        for coin in data.get("symbols", []):
+            if coin["symbol"] in ["BTC", "ETH", "SOL"]:
+                result[coin["symbol"]] = coin["lastPrice"]
+
+        return result
+    except:
+        return {"BTC": 0, "ETH": 0, "SOL": 0}

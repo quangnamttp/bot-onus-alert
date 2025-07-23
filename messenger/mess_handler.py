@@ -1,72 +1,47 @@
-from messenger.registry_manager import (
-    register_user,
-    get_user_status,
-    update_user_status,
-    approve_user,
-)
-from messenger.signal_toggle import check_toggle_request
-from messenger.send_message import send_message
+from messenger.send_message import send_message, send_quick_reply
 
-ADMIN_ID = "24110537551888914"  # ← ID Facebook cá nhân thực của bạn
+ADMIN_ID = "24110537551888914"  # ← ID của bạn, Trương
 
 def handle_new_message(user_id, user_name, message_text):
-    status = get_user_status(user_id)
-
-    # 🟢 Nếu user mới → đăng ký + chào hỏi
-    if not status:
-        register_user(user_id, user_name)
-        reply = (
-            "Chào bạn 👋 Mình là Cofure — trợ lý gửi tín hiệu giao dịch thị trường ONUS.\n"
-            "Bạn có muốn nhận bản tin & tín hiệu mỗi ngày không?\n"
-            "👉 Nếu đồng ý, hãy nhắn: “Đồng ý”"
-        )
-        send_message(user_id, reply)
-        return
-
-    # ✅ Nếu tin nhắn có nội dung “đồng ý” → gửi xét duyệt
-    if "đồng ý" in message_text.strip().lower():
-        send_message(user_id,
-            "📨 Yêu cầu của bạn đã được ghi nhận và đang chờ xét duyệt từ admin.\n"
-            "Vui lòng đợi admin Trương Tấn Phương xác nhận yêu cầu của bạn nhé ✅"
-        )
-        print(f"[XétDuyệt] Gửi xét duyệt đến ADMIN_ID: {ADMIN_ID}")
-        send_message(ADMIN_ID,
-            f"👤 Người dùng {user_id} vừa nhấn ✅ Đồng ý.\n"
-            f"Gõ: Duyệt {user_id} hoặc Từ chối {user_id} để xử lý."
+    if isinstance(message_text, str):
+        # Tin chào với nút đăng ký
+        send_quick_reply(
+            user_id,
+            "Chào bạn 👋 Mình là Cofure — trợ lý tín hiệu ONUS.\nBạn muốn nhận bản tin mỗi ngày chứ?",
+            [
+                { "content_type": "text", "title": "✅ Đăng ký nhận", "payload": f"DANGKY_{user_id}" },
+                { "content_type": "text", "title": "❌ Không nhận", "payload": f"HUY_{user_id}" }
+            ]
         )
         return
 
-    # 🎯 Xét duyệt từ admin
-    if message_text.startswith("Duyệt "):
-        target_id = message_text.split("Duyệt ")[1].strip()
-        approve_user(target_id)
-        send_message(target_id,
-            "✅ Trương Tấn Phương đã xét duyệt bạn!\n"
-            "Tín hiệu ONUS sẽ được gửi tại đây qua Messenger mỗi ngày."
+    payload = message_text.get("quick_reply", {}).get("payload")
+
+    # Xử lý đăng ký
+    if payload and payload.startswith("DANGKY_"):
+        target_id = payload.split("_")[1]
+        send_message(user_id, "📨 Yêu cầu đã gửi đến admin. Vui lòng chờ xét duyệt.")
+        send_quick_reply(
+            ADMIN_ID,
+            f"👤 Người dùng {target_id} muốn nhận tín hiệu ONUS.\nBạn duyệt chứ?",
+            [
+                { "content_type": "text", "title": "✅ Duyệt", "payload": f"DUYET_{target_id}" },
+                { "content_type": "text", "title": "❌ Từ chối", "payload": f"TUCHOI_{target_id}" }
+            ]
         )
-        send_message(user_id, f"✅ Đã xét duyệt cho {target_id}.")
-        return
 
-    # ❌ Từ chối từ admin
-    if message_text.startswith("Từ chối "):
-        target_id = message_text.split("Từ chối ")[1].strip()
-        send_message(target_id,
-            "❌ Bạn chưa được xét duyệt để nhận tín hiệu.\n"
-            "Vui lòng đợi admin Trương Tấn Phương xác nhận lại sau."
-        )
-        send_message(user_id, f"🚫 Đã từ chối yêu cầu của {target_id}.")
-        return
+    # Từ chối đăng ký
+    elif payload and payload.startswith("HUY_"):
+        send_message(user_id, "🛑 Bạn đã từ chối nhận tín hiệu. Có thể đăng ký sau nhé!")
 
-    # 🔁 Bật/tắt tín hiệu nếu có
-    toggle_response = check_toggle_request(user_id, message_text)
-    if toggle_response:
-        send_message(user_id, toggle_response)
-        return
+    # Admin duyệt
+    elif payload and payload.startswith("DUYET_"):
+        target_id = payload.split("_")[1]
+        send_message(target_id, "✅ Bạn đã được xét duyệt! Tín hiệu sẽ được gửi mỗi ngày.")
+        send_message(user_id, f"📬 Đã duyệt người dùng {target_id}.")
 
-    # ✅ Nếu đã được duyệt → phản hồi nhẹ
-    if status.get("approved"):
-        send_message(user_id, "🤖 Bạn đã được xét duyệt rồi, tín hiệu ONUS sẽ tiếp tục được gửi mỗi ngày.")
-        return
-
-    # 🛑 Nếu chưa được duyệt → không phản hồi lặp
-    return
+    # Admin từ chối
+    elif payload and payload.startswith("TUCHOI_"):
+        target_id = payload.split("_")[1]
+        send_message(target_id, "❌ Yêu cầu bị từ chối. Thử lại sau nhé!")
+        send_message(user_id, f"🛑 Đã từ chối người dùng {target_id}.")

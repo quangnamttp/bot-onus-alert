@@ -29,16 +29,17 @@ def handle_new_message(user_id, user_name, message_text):
         payload = message_text.get("quick_reply", {}).get("payload")
         if payload:
             if payload.startswith("DANGKY_"):
-                if user_id in approved_users:
+                target_id = payload.split("_")[1]
+                if target_id in approved_users:
                     send_message(user_id, "🔁 Bạn đã đăng ký nhận tín hiệu ONUS rồi. Không cần đăng ký lại.")
                 else:
                     send_message(user_id, "📨 Yêu cầu đã được gửi tới admin để xét duyệt.")
                     send_quick_reply(
                         ADMIN_ID,
-                        f"👤 Người dùng {user_id} muốn nhận tín hiệu ONUS.\nBạn duyệt không?",
+                        f"👤 Người dùng {target_id} muốn nhận tín hiệu ONUS.\nBạn duyệt không?",
                         [
-                            { "content_type": "text", "title": "✅ Duyệt", "payload": f"DUYET_{user_id}" },
-                            { "content_type": "text", "title": "❌ Từ chối", "payload": f"TUCHOI_{user_id}" }
+                            { "content_type": "text", "title": "✅ Duyệt", "payload": f"DUYET_{target_id}" },
+                            { "content_type": "text", "title": "❌ Từ chối", "payload": f"TUCHOI_{target_id}" }
                         ]
                     )
 
@@ -59,7 +60,7 @@ def handle_new_message(user_id, user_name, message_text):
                 target_id = payload.split("_")[1]
                 send_message(target_id, "❌ Yêu cầu bị từ chối. Bạn có thể thử lại sau.")
                 send_message(user_id, f"🛑 Đã từ chối người dùng {target_id}.")
-            return  # ✅ Không lặp lại tin chào
+            return  # ✅ Không lặp lại tin chào sau xử lý nút
 
     # Nếu là tin nhắn văn bản bình thường → gửi lời chào kèm nút
     send_quick_reply(

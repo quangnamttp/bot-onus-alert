@@ -1,1 +1,22 @@
-{}
+[
+  {
+    "symbol": "BTC",
+    "side": "Long",
+    "entry": 983000000,
+    "tp": 1052200000,
+    "sl": 933850000,
+    "status": "TP",
+    "strategy": "Scalping",
+    "timestamp": "2025-07-22T14:15:00"
+  },
+  {
+    "symbol": "KAI",
+    "side": "Short",
+    "entry": 730,
+    "tp": 679,
+    "sl": 766,
+    "status": "SL",
+    "strategy": "Swing",
+    "timestamp": "2025-07-22T15:00:00"
+  }
+]

@@ -1,7 +1,16 @@
 import os
+import schedule
+import time
+from threading import Thread
 from flask import Flask, request
 from messenger.mess_handler import handle_new_message
 from utils.config_loader import VERIFY_TOKEN
+
+# ✅ Import các module gửi tín hiệu theo lịch
+from scheduler.morning_report import send_morning_greeting
+from scheduler.news_schedule import send_macro_news
+from scheduler.signal_dispatcher import loop_send_trade_signals
+from scheduler.summary_report import send_night_summary
 
 app = Flask(__name__)
 
@@ -38,7 +47,19 @@ def webhook():
             print(f"[main] → {user_id}: tin nhắn đã được xử lý.")
     return "OK", 200
 
-# ✅ Khởi chạy server Flask theo cổng Render
+# ✅ Khởi chạy lịch gửi tự động phần 2
+def start_scheduler():
+    schedule.every().day.at("06:00").do(send_morning_greeting)
+    schedule.every().day.at("07:00").do(send_macro_news)
+    schedule.every(20).minutes.do(loop_send_trade_signals)
+    schedule.every().day.at("22:00").do(send_night_summary)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(10)
+
+# ✅ Chạy Flask + scheduler song song
 if __name__ == "__main__":
+    Thread(target=start_scheduler).start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

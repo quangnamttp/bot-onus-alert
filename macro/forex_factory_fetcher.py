@@ -1,6 +1,21 @@
-def get_today_news():
-    # Giả lập danh sách tin vĩ mô từ Forex Factory → thay bằng parser thực tế nếu cần
-    return [
-        { "time": "19:30", "title": "US CPI", "impact": "Cao" },
-        { "time": "01:00", "title": "Biên bản họp FOMC", "impact": "Trung bình" }
-    ]
+# cofure_bot/macro/forex_factory_fetcher.py
+
+import requests
+
+def fetch_macro_news():
+    try:
+        response = requests.get("https://api.forexfactory.ai/v1/today")
+        news_data = response.json()
+
+        important_events = []
+        for event in news_data.get("events", []):
+            if event["impact"] in ["High", "Medium"]:
+                important_events.append({
+                    "time": event["time"],
+                    "title": event["title"],
+                    "impact": event["impact"]
+                })
+
+        return important_events
+    except:
+        return []

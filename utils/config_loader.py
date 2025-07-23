@@ -1,9 +1,11 @@
+# cofure_bot/utils/config_loader.py
+
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-MESSENGER_TOKEN = os.getenv("MESSENGER_TOKEN")
+PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN")
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
-PORT = os.getenv("PORT", "5000")
-APP_URL = os.getenv("APP_URL", "https://localhost")
+MY_USER_ID = os.getenv("MY_USER_ID")
+PORT = int(os.getenv("PORT", "5000"))

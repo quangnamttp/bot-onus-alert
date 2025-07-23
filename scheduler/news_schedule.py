@@ -1,7 +1,7 @@
 from macro.forex_factory_fetcher import get_today_news
 from messenger.registry_manager import load_user_status, is_approved_and_active
 
-def send_daily_news_schedule():
+def send_macro_news():
     news_list = get_today_news()
     if not news_list:
         news_msg = "📅 Hôm nay không có tin tức vĩ mô quan trọng.\nChúc bạn một ngày trade thật thành công nha!"

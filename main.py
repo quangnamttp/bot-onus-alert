@@ -51,7 +51,7 @@ def webhook():
 def start_scheduler():
     schedule.every().day.at("06:00").do(send_morning_report)
     schedule.every().day.at("07:00").do(send_macro_news)
-    schedule.every(20).minutes.do(loop_send_trade_signals)
+    schedule.every(15).minutes.do(loop_send_trade_signals)
     schedule.every().day.at("22:00").do(send_night_summary)
 
     while True:

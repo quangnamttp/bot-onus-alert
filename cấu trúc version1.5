@@ -1,58 +1,56 @@
-📁 cofure_bot/
+cofure_bot/
 │
-├── messenger/              # 👥 Xử lý người dùng mới + bật/tắt tín hiệu
-│   ├── mess_handler.py           # Xử lý lời chào, phản hồi lựa chọn, trạng thái duyệt
-│   ├── signal_toggle.py          # Cho phép người dùng bật / tắt nhận tín hiệu theo ý muốn
-│   └── registry_manager.py       # Lưu trạng thái approved, timestamp, history user
+├── main.py                # 🚀 Khởi động Flask + webhook Messenger + scheduler tín hiệu
+├── .env.example           # 🔐 Token Page, verify token, Messenger user ID, PORT
+├── requirements.txt       # 📦 Flask, requests, schedule, dotenv...
+├── Procfile               # ⚙️ Dành cho Heroku hoặc Render
+
 │
-├── scheduler/              # 📅 Quản lý bản tin theo giờ: sáng, vĩ mô, phiên, khép phiên
-│   ├── morning_report.py         # Gửi bản tin chào sáng + xu hướng thị trường
-│   ├── news_schedule.py          # Báo lịch tin vĩ mô mỗi ngày (CPI, FOMC...)
-│   ├── signal_dispatcher.py      # Gửi tín hiệu phiên (chu kỳ 15–30 phút/lệnh)
-│   └── summary_report.py         # Tổng kết phiên lúc 22h + hiệu suất + chúc ngủ ngon
+├── utils/                 # 🔧 Phụ trợ chung
+│   ├── config_loader.py       # Load biến môi trường: TOKEN, USER_ID, VERIFY_TOKEN
+│   ├── vnđ_formatter.py       # Format giá VNĐ cho entry / TP / SL
 │
-├── core/                   # 🧠 Xử lý kỹ thuật để sinh tín hiệu thật
-│   ├── signal_generator.py       # Phân tích volume / funding / mô hình → sinh lệnh
-│   ├── emergency_signal.py       # Lệnh khẩn → báo sớm TRƯỚC khi giá chạy
-│   ├── strength_classifier.py    # Phân loại độ mạnh lệnh: mạnh / tiêu chuẩn / tham khảo
-│   └── pre_breakout_detector.py  # Quét tín hiệu chuẩn bị breakout / breakdown
+├── messenger/             # 📬 Gửi tin qua Messenger
+│   └── send_message.py        # Hàm gửi tin Meta API — dùng TOKEN và USER_ID
+
 │
-├── marketdata/             # 📊 Lấy dữ liệu từ sàn ONUS Futures
-│   ├── futures_tracker.py        # Lấy danh sách coin Futures + funding các cặp coin
-│   ├── volume_scanner.py         # Quét volume realtime từng coin
-│   └── spread_monitor.py         # Theo dõi spread / RSI để phát hiện lực nén
+├── messages/              # 💬 Trình bày nội dung tin nhắn rõ ràng, dễ hiểu
+│   ├── format_signal.py       # Format 5 lệnh theo emoji và độ mạnh
+│   ├── emergency_format.py    # Format riêng cho lệnh khẩn cấp
+│   └── greeting_format.py     # Tin chào buổi sáng, tổng kết phiên, lời chúc
+
 │
-├── macro/                 # 🕯️ Phân tích tin vĩ mô và phản ứng thị trường
-│   ├── forex_factory_fetcher.py  # Lấy lịch tin từ Forex Factory (CPI, FOMC, Fed...)
-│   ├── news_analyzer.py          # Xử lý kết quả tin ra → đánh giá volume / spread phản ứng
-│   └── macro_advisor.py          # Gửi lời khuyên chiến lược sau khi tin ra (nên đứng ngoài / Long / Short)
+├── scheduler/             # 📅 Hoạt động theo giờ từ 06:00 → 22:00
+│   ├── morning_report.py      # 06:00 — Giá BTC/ETH/SOL + Funding + xu hướng
+│   ├── news_schedule.py       # 07:00 — Lịch tin CPI/FOMC + chiến lược
+│   ├── signal_dispatcher.py   # Mỗi 15p — Gửi 5 lệnh từ signal_generator
+│   ├── summary_report.py      # 22:00 — Hiệu suất TP/SL + biểu đồ + lời chúc
+│   └── emergency_trigger.py   # Chạy mỗi 1 phút — Kích hoạt lệnh khẩn nếu breakout
+
 │
-├── messages/              # 💬 Trình bày tin nhắn bot cho đẹp, dễ hiểu
-│   ├── format_signal.py          # Format lệnh: entry, TP, SL, emoji theo độ mạnh
-│   ├── greeting_format.py        # Format tin chào sáng + chúc ngủ ngon cá nhân hoá
-│   └── emergency_format.py       # Format riêng cho lệnh khẩn → dễ nhận diện
+├── core/                  # 🧠 Sinh lệnh từ dữ liệu kỹ thuật
+│   ├── signal_generator.py    # Tạo 5 lệnh: 3 Scalping + 2 Swing + độ mạnh
+│   ├── emergency_signal.py    # Quét funding/volume → sinh lệnh khẩn cấp
+│   ├── pre_breakout_detector.py # Phát hiện spread co, RSI tích cực → dự báo sớm
+│   └── strength_classifier.py # Phân loại độ mạnh: ≥70 ✅ • 50–69 🟡 • <50 ⚠️
+
 │
-├── admin/                 # 🛠️ Quản lý người dùng & broadcast
-│   ├── approval_panel.py         # Duyệt user mới / kiểm tra trạng thái approved
-│   └── broadcast_manager.py      # Gửi tin hệ thống / kiểm soát vận hành bot
+├── macro/                # 🕯️ Phân tích tin vĩ mô và phản ứng thị trường
+│   ├── forex_factory_fetcher.py # Lấy tin từ ForexFactory hoặc API tin vĩ mô
+│   ├── news_analyzer.py        # Phân tích sau khi CPI ra: funding / spread
+│   └── macro_advisor.py        # Gợi ý nên Long / Wait / đứng ngoài
+
 │
-├── utils/                 # 🔧 Hàm phụ trợ phục vụ các nhóm khác
-│   ├── vnđ_formatter.py          # Chuyển đổi số sang tiền VNĐ rõ ràng
-│   ├── spam_guard.py             # Chống spam tín hiệu / giới hạn tần suất gửi
-│   ├── config_loader.py          # Load dữ liệu `.env` hoặc config khác
-│   └── logger.py                 # Lưu log hoạt động → theo dõi lỗi
+├── marketdata/           # 📊 Lấy dữ liệu từ ONUS Futures
+│   ├── futures_tracker.py      # Danh sách coin Futures có funding
+│   ├── volume_scanner.py       # Quét volume tăng bất thường
+│   └── spread_monitor.py       # Theo dõi spread, RSI để báo breakout
+
 │
-├── data/                  # 🗂️ File dữ liệu JSON
-│   ├── user_status.json          # Trạng thái approved, tín hiệu của mỗi user
-│   ├── signal_log.json           # Log các tín hiệu đã gửi + hiệu suất TP / SL
-│   ├── news_log.json             # Lưu lịch tin đã gửi
-│   └── coin_list.json            # Danh sách coin ONUS Futures đang quét
-│
-├── main.py                # 🚀 Khởi động Flask + webhook Messenger + routing đến các nhóm
-├── init_files.py          # 🔧 Tự tạo file JSON dữ liệu nếu chưa có (khởi động bot lần đầu)
-├── requirements.txt       # 📦 Khai báo thư viện: Flask, requests, dotenv, gunicorn...
-├── Procfile               # ⚙️ Cấu hình khởi động bot trên Heroku hoặc VPS
-├── .env.example           # 🔐 File mẫu môi trường → MESSENGER_TOKEN, PORT, VERIFY_TOKEN...
+├── data/                 # 🗂️ JSON lưu dữ liệu chạy theo thời gian
+│   ├── signal_log.json         # Lưu log 5 tín hiệu đã gửi
+│   ├── macro_news.json         # Tin vĩ mô đã gửi hôm nay
+│   └── coin_list.json          # Danh sách coin quét Funding / Volume
 
 
                

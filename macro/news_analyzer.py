@@ -1,24 +1,15 @@
-import random
+# cofure_bot/macro/news_analyzer.py
 
-def analyze_news_impact(news_title):
-    # Mô phỏng dữ liệu thị trường sau khi tin ra → thay bằng real-time fetch nếu cần
-    impact = {}
+def analyze_post_news(market_data):
+    funding = market_data["funding"]
+    volume = market_data["volume"]
+    rsi = market_data["rsi"]
+    spread = market_data["spread"]
 
-    impact["CPI"] = {
-        "actual": 3.1,
-        "forecast": 3.3,
-        "previous": 3.4,
-        "funding_btc": "+0.04%",
-        "volume_eth": "vừa bật 28 tỷ VNĐ",
-        "reaction": "tích cực"
-    }
+    signals = []
+    if funding > 0.008 and volume > 30 and rsi > 55:
+        signals.append("Thị trường phản ứng tích cực → có thể Long")
+    elif funding < -0.008 and rsi < 45 and spread > 1.3:
+        signals.append("Thị trường phản ứng tiêu cực → nên đứng ngoài")
 
-    impact["FOMC"] = {
-        "actual_rate": "Giữ nguyên 5.25%",
-        "expectation": "Tăng lên 5.50%",
-        "funding_btc": "-0.01%",
-        "volume_eth": "sideway",
-        "reaction": "đi ngang"
-    }
-
-    return impact.get(news_title, {})
+    return signals

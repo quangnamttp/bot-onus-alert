@@ -2,7 +2,7 @@
 
 import time
 from marketdata.futures_tracker import get_futures_data
-from strength_classifier import classify_strength
+from core.strength_classifier import classify_strength
 from messenger.send_message import send_message
 from messages.emergency_format import format_emergency_signal
 from utils.config_loader import MY_USER_ID

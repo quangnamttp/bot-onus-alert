@@ -2,7 +2,7 @@
 
 from marketdata.futures_tracker import get_futures_data
 from core.strength_classifier import classify_strength
-from pre_breakout_detector import detect_pattern
+from core.pre_breakout_detector import detect_pattern
 
 def generate_signals():
     coin_data = get_futures_data()

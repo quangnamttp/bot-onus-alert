@@ -57,51 +57,7 @@
 
                
 *****Công dụng bot*****
-phần 1:🔔 Khi người dùng lần đầu nhắn tin Messenger:
-
-1️⃣ Bot gửi lời chào:
-“Chào bạn 👋 Mình là Cofure — trợ lý gửi tín hiệu giao dịch thị trường ONUS.  
-Bạn có muốn nhận bản tin & tín hiệu mỗi ngày không ạ?”
-
-2️⃣ Hiển thị lựa chọn:
-✅ Đồng ý  
-❌ Từ chối
-
-→ Nếu chọn ✅:
-• Bot phản hồi:
-“Bạn đã đăng ký nhận tín hiệu rồi nha!  
-Hiện tại bạn đang chờ xét duyệt từ [Trương Tấn Phương](https://fb.com/quangnamttp)”  
-• Lưu trạng thái: `approved = false`
-
-→ Nếu chọn ❌:
-• Bot phản hồi lịch sự:
-“Không sao đâu, bạn có thể bật lại bất kỳ lúc nào nha 😊”
-
-3️⃣ Sau khi admin xét duyệt thủ công:
-• Bot cập nhật trạng thái `approved = true`  
-• Người dùng bắt đầu nhận bản tin & tín hiệu hằng ngày
-
-🔒 Người chưa được duyệt:
-→ Không nhận bất kỳ bản tin, tín hiệu hay cảnh báo nào  
-→ Đảm bảo không spam, không gây khó chịu với user mới
-👤 Nếu user không muốn nhận tín hiệu nữa:
-
-1️⃣ Khi user nhắn:
-→ “Tắt tín hiệu” / “Không nhận nữa” / “Stop” / “Tạm nghỉ”…
-
-2️⃣ Bot xử lý:
-• Gửi xác nhận:
-“Đã ghi nhận yêu cầu. Tín hiệu sẽ tạm dừng gửi từ bây giờ nha!”
-
-• Cập nhật trạng thái: `signal_active = false`  
-• Dừng toàn bộ bản tin, lệnh, cảnh báo
-
-3️⃣ Nếu user muốn bật lại:
-→ Nhắn: “Bật tín hiệu lại” / “Muốn nhận lại”  
-→ Bot khôi phục: `signal_active = true`  
-→ Gửi tin xác nhận: “Bạn đã bật lại chế độ nhận tín hiệu rồi nha!”
-
-Phần2: 🕒 Khung giờ hoạt động: 06:00 → 22:00 mỗi ngày
+ 🕒 Khung giờ hoạt động: 06:00 → 22:00 mỗi ngày
 
 🌞 06:00 — Chào buổi sáng + bản tin đầu ngày
 • Tin nhắn cá nhân hóa: “Chào buổi sáng nhé {Tên} ☀️…”  

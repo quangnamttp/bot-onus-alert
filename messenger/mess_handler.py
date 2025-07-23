@@ -1,27 +1,71 @@
-from messenger.registry_manager import register_user, get_user_status
+from messenger.registry_manager import (
+    register_user,
+    get_user_status,
+    update_user_status,
+    approve_user,
+)
 from messenger.signal_toggle import check_toggle_request
-from messenger.send_message import send_message  # ✅ Bổ sung hàm gửi tin
-from utils.vnđ_formatter import format_vnd 
+from messenger.send_message import send_message
+
+# 📌 ID Messenger của bạn — để bot gửi xét duyệt riêng cho bạn
+ADMIN_ID = "100036886332606"  # ← Đừng sửa nếu đúng ID bạn tra được
 
 def handle_new_message(user_id, user_name, message_text):
+    # 🔍 Kiểm tra trạng thái người dùng
     status = get_user_status(user_id)
+
+    # 🟢 Nếu là user mới — tiến hành đăng ký
     if not status:
         register_user(user_id, user_name)
-        reply = {
-            "text": f"Chào bạn 👋 Mình là Cofure — trợ lý gửi tín hiệu giao dịch thị trường ONUS.\n"
-                    f"Bạn có muốn nhận bản tin & tín hiệu mỗi ngày không ạ?",
-            "quick_replies": ["✅ Đồng ý", "❌ Từ chối"]
-        }
-        send_message(user_id, reply["text"])  # ✅ Gửi tin nhắn thực tế
-        return reply
+        reply = (
+            "Chào bạn 👋 Mình là Cofure — trợ lý gửi tín hiệu giao dịch thị trường ONUS.\n"
+            "Bạn có muốn nhận bản tin & tín hiệu mỗi ngày không?\n"
+            "👉 Nếu đồng ý, hãy nhắn: “✅ Đồng ý”"
+        )
+        send_message(user_id, reply)
+        return
 
-    # Check if message is toggle request
+    # ✅ Người dùng nhắn “Đồng ý” → gửi yêu cầu xét duyệt cho bạn
+    if message_text.strip() == "✅ Đồng ý":
+        send_message(user_id,
+            "📨 Yêu cầu của bạn đã được gửi đến [Trương Tấn Phương](https://www.facebook.com/quangnamttp) để xét duyệt."
+        )
+        send_message(ADMIN_ID,
+            f"👤 Người dùng {user_id} vừa nhấn ✅ Đồng ý.\n"
+            f"Gõ: Duyệt {user_id} hoặc Từ chối {user_id} để xử lý."
+        )
+        return
+
+    # 🎯 Admin duyệt: “Duyệt <user_id>”
+    if message_text.startswith("Duyệt "):
+        target_id = message_text.split("Duyệt ")[1].strip()
+        approve_user(target_id)
+        send_message(target_id,
+            "✅ [Trương Tấn Phương](https://www.facebook.com/quangnamttp) đã xét duyệt bạn!\n"
+            "Tín hiệu ONUS sẽ được gửi tại đây qua Messenger mỗi ngày."
+        )
+        send_message(user_id, f"✅ Đã xét duyệt cho {target_id}.")
+        return
+
+    # ❌ Admin từ chối: “Từ chối <user_id>”
+    if message_text.startswith("Từ chối "):
+        target_id = message_text.split("Từ chối ")[1].strip()
+        send_message(target_id,
+            "❌ Bạn chưa được xét duyệt để nhận tín hiệu.\n"
+            "Vui lòng liên hệ [Trương Tấn Phương](https://www.facebook.com/quangnamttp) nếu cần hỗ trợ."
+        )
+        send_message(user_id, f"🚫 Đã từ chối yêu cầu của {target_id}.")
+        return
+
+    # 🔁 Bật/tắt tín hiệu
     toggle_response = check_toggle_request(user_id, message_text)
     if toggle_response:
-        send_message(user_id, toggle_response)  # ✅ Gửi phản hồi toggle
-        return { "text": toggle_response }
+        send_message(user_id, toggle_response)
+        return
 
-    # Default fallback
-    fallback = "Bạn đã đăng ký rồi nha 😊 Nếu cần tắt/bật tín hiệu có thể nhắn: “Tắt tín hiệu” hoặc “Bật tín hiệu lại”."
-    send_message(user_id, fallback)  # ✅ Gửi phản hồi mặc định
-    return { "text": fallback }
+    # 🧭 Mặc định nếu không khớp lệnh nào
+    fallback = (
+        "Bạn chưa được xét duyệt để nhận tín hiệu.\n"
+        "Vui lòng chờ xét duyệt từ [Trương Tấn Phương](https://www.facebook.com/quangnamttp) nhé ✅"
+    )
+    send_message(user_id, fallback)

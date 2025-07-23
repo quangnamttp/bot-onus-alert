@@ -1,16 +1,32 @@
-from utils.vnđ_formatter import format as format_vnd
+# cofure_bot/messages/format_signal.py
+
+from utils.vnd_formatter import format_vnd
 
 def format_signal_batch(signals):
-    msg = "📊 Tín hiệu phiên hôm nay:\n"
-    for idx, sig in enumerate(signals, 1):
-        emoji = "✅" if sig["strength"] >= 70 else "🟡" if sig["strength"] >= 50 else "⚠️"
-        entry = format_vnd(sig["entry"])
-        tp = format_vnd(sig["tp"])
-        sl = format_vnd(sig["sl"])
-        nhan = " — Tham khảo" if sig["strength"] < 50 else ""
+    parts = ["📊 Dưới đây là 5 tín hiệu phiên Cofure — gồm 3 Scalping + 2 Swing:\n"]
+    
+    for idx, s in enumerate(signals, start=1):
+        entry = format_vnd(s["entry"])
+        tp = format_vnd(s["tp"])
+        sl = format_vnd(s["sl"])
+        strength = s["strength"]
+        emoji = "✅" if strength >= 70 else "🟡" if strength >= 50 else "⚠️"
 
-        msg += f"\n{emoji} [{idx}] {sig['coin']} ({sig.get('type', 'Long')}){nhan}\n"
-        msg += f"📌 Chiến lược: {sig.get('strategy', 'Scalping')} • Lệnh: {sig.get('order_type', 'Market')}\n"
-        msg += f"💰 Entry: {entry}\n🎯 TP: {tp} • 🛡️ SL: {sl}\n"
-        msg += f"📋 Lý do: {sig['reason']}\n📈 Độ mạnh: {sig['strength']}%\n"
-    return msg
+        text = f"""
+{emoji} Signal #{idx} — {s['symbol']} ({s['strategy']} • {s['side']})
+
+📌 Lệnh: {s['order_type']} • Phiên: {s['session_time']}  
+➡️ Hành động: {'MUA' if s['side'] == 'Long' else 'BÁN'} ngay tại {entry}
+
+🎯 TP: {tp} • 🛡️ SL: {sl}
+
+📋 Lý do kỹ thuật:
+• Funding: {s['funding']} • Volume: +{s['volume_change']}%  
+• RSI: {s['rsi']} • Spread: {s['spread']}  
+• Mô hình: {s['pattern']}  
+
+📈 Độ mạnh: {emoji} {strength}% — {s['strength_label']}
+"""
+        parts.append(text.strip())
+
+    return "\n\n".join(parts)

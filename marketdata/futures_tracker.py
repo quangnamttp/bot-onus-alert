@@ -1,11 +1,23 @@
-def get_top_coin_data():
-    # Mô phỏng lấy funding & giá top coin — thay bằng API thật nếu có
-    return {
-        "BTC": { "funding": "+0.03%", "price": 183_200_000 },
-        "ETH": { "funding": "-0.01%", "price": 56_700_000 },
-        "SOL": { "funding": "+0.04%", "price": 3_750_000 }
-    }
+# cofure_bot/marketdata/futures_tracker.py
 
-def get_all_futures():
-    # Trả về danh sách toàn bộ coin Futures đang được ONUS hỗ trợ
-    return ["BTC", "ETH", "SOL", "NEO", "CHI", "C98", "MATIC", "DOGE"]
+import requests
+
+def get_futures_data():
+    try:
+        response = requests.get("https://api.onus.io/futures-market")
+        data = response.json()
+
+        coins = []
+        for item in data.get("symbols", []):
+            coins.append({
+                "symbol": item["symbol"],
+                "price": item["lastPrice"],
+                "funding": item["fundingRate"],
+                "volume_change": item["volumeChange"],
+                "rsi": item["rsi"],
+                "spread": item["spread"]
+            })
+
+        return coins
+    except:
+        return []

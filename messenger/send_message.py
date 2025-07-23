@@ -1,24 +1,15 @@
 import requests
-import os
 
-# 📌 Token Messenger lấy từ Page Access Token trên Meta Developer
-PAGE_TOKEN = os.getenv("MESSENGER_TOKEN")  # Đặt trong file .env
+PAGE_ACCESS_TOKEN = "YOUR_PAGE_ACCESS_TOKEN"
 
-def send_message(user_id, text):
-    url = "https://graph.facebook.com/v17.0/me/messages"
+def send_message(recipient_id, message_text):
+    payload = {
+        "recipient": { "id": recipient_id },
+        "message": { "text": message_text }
+    }
     headers = {
         "Content-Type": "application/json"
     }
-    payload = {
-        "recipient": {"id": user_id},
-        "message": {"text": text}
-    }
-    params = {
-        "access_token": PAGE_TOKEN
-    }
-
-    response = requests.post(url, headers=headers, params=params, json=payload)
-    if response.status_code != 200:
-        print(f"[send_message] ❌ Error: {response.status_code} → {response.text}")
-    else:
-        print(f"[send_message] ✅ Sent to {user_id}: {text}")
+    url = f"https://graph.facebook.com/v18.0/me/messages?access_token={PAGE_ACCESS_TOKEN}"
+    response = requests.post(url, json=payload, headers=headers)
+    print(f"[send_message] → {recipient_id}: {message_text} | Status: {response.status_code}")

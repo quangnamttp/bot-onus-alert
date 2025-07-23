@@ -1,32 +1,50 @@
-from marketdata.volume_scanner import get_volume_data
-from marketdata.spread_monitor import get_spread_data
-from core.strength_classifier import classify_strength
+# cofure_bot/core/signal_generator.py
+
+from marketdata.futures_tracker import get_futures_data
+from strength_classifier import classify_strength
+from pre_breakout_detector import detect_pattern
 
 def generate_signals():
-    volume_info = get_volume_data()
-    spread_info = get_spread_data()
-
+    coin_data = get_futures_data()
     signals = []
-    for coin in volume_info:
-        if coin not in spread_info:
+
+    for coin in coin_data:
+        fund = coin["funding"]
+        vol = coin["volume_change"]
+        rsi = coin["rsi"]
+        spread = coin["spread"]
+        price = coin["price"]
+        pattern = detect_pattern(coin["symbol"])
+        
+        strength, label = classify_strength(fund, vol, rsi, spread)
+
+        direction = None
+        if fund > 0.005 and rsi > 54 and pattern in ["tam giác tăng", "nền phẳng"]:
+            direction = "Long"
+        elif fund < -0.005 and rsi < 45 and pattern in ["vai đầu vai", "nền giảm"]:
+            direction = "Short"
+        else:
             continue
 
-        v = volume_info[coin]
-        s = spread_info[coin]
+        signals.append({
+            "symbol": coin["symbol"],
+            "order_type": "Market",
+            "strategy": "Scalping" if len(signals) < 3 else "Swing",
+            "side": direction,
+            "entry": price,
+            "tp": price * 1.07 if direction == "Long" else price * 0.93,
+            "sl": price * 0.95 if direction == "Long" else price * 1.05,
+            "funding": fund,
+            "volume_change": vol,
+            "rsi": rsi,
+            "spread": spread,
+            "pattern": pattern,
+            "strength": strength,
+            "strength_label": label,
+            "session_time": "Real-time"
+        })
 
-        strength = classify_strength(v, s)
-
-        if strength >= 50:
-            entry = round(s['price'], -2)
-            signal = {
-                "coin": coin,
-                "entry": entry,
-                "tp": entry + s['target_range'],
-                "sl": entry - s['risk_range'],
-                "type": "Limit",
-                "strength": strength,
-                "reason": f"Volume tăng {v['change']}%, funding nghiêng {s['bias']}, spread co."
-            }
-            signals.append(signal)
+        if len(signals) == 5:
+            break
 
     return signals

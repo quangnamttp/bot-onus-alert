@@ -1,7 +1,7 @@
 import json
 import os
 
-DATA_FILE = "user_status.json"  # 📌 File lưu trạng thái người dùng
+DATA_FILE = "user_status.json"  # 📁 Bot lưu trạng thái người dùng ở đây
 
 def load_data():
     if not os.path.exists(DATA_FILE):
@@ -23,8 +23,7 @@ def register_user(user_id, user_name):
     save_data(data)
 
 def get_user_status(user_id):
-    data = load_data()
-    return data.get(user_id)
+    return load_data().get(user_id)
 
 def update_user_status(user_id, key, value):
     data = load_data()

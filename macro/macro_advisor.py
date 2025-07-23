@@ -1,27 +1,13 @@
-from macro.news_analyzer import analyze_news_impact
+# cofure_bot/macro/macro_advisor.py
 
-def generate_macro_advice(news_title):
-    impact = analyze_news_impact(news_title)
-    if not impact:
-        return f"🕯️ Tin {news_title} vừa ra, nhưng chưa có dữ liệu rõ ràng từ thị trường."
+def generate_macro_strategy(news_list):
+    if not news_list:
+        return "📅 Hôm nay không có tin tức vĩ mô quan trọng.\nChúc bạn một ngày trade thật tự tin nhé!"
 
-    if news_title == "US CPI":
-        if impact["actual"] < impact["forecast"]:
-            return f"🕯️ CPI ra: {impact['actual']}% (thấp hơn dự báo {impact['forecast']}%) → tâm lý tích cực.\n"
-                   f"Funding BTC: {impact['funding_btc']}, Volume ETH: {impact['volume_eth']}.\n"
-                   f"💡 Gợi ý: Có thể cân nhắc Long sau 5 phút nếu xu hướng ổn định."
+    lines = ["📅 Tin vĩ mô hôm nay bạn cần chú ý:\n"]
+    for item in news_list:
+        impact = "🔥" if item["impact"] == "High" else "⚠️"
+        lines.append(f"{impact} {item['time']} — {item['title']} ({item['impact']})")
 
-        else:
-            return f"🕯️ CPI ra: {impact['actual']}% (cao hơn dự báo) → thị trường biến động.\n"
-                   f"💡 Gợi ý: Nên đứng ngoài 10–15 phút trước khi đánh giá lại."
-
-    if news_title == "Biên bản họp FOMC":
-        if "giữ nguyên" in impact["actual_rate"].lower():
-            return f"🕯️ FED giữ lãi suất: {impact['actual_rate']} → thị trường đi ngang.\n"
-                   f"💡 Gợi ý: Nên quan sát thêm, đứng ngoài ít phút sau tin."
-
-        else:
-            return f"🕯️ FED điều chỉnh lãi suất: {impact['actual_rate']} → thị trường có thể biến động mạnh.\n"
-                   f"💡 Gợi ý: Cân nhắc lệnh chiến lược nếu phản ứng rõ xu hướng sau 5–10 phút."
-
-    return "📊 Tin ra nhưng chưa rõ xu hướng. Nên chờ thị trường phản ứng trước khi hành động."
+    lines.append("\n📋 Gợi ý: Nếu tin ra lúc 20:30 thì nên đứng ngoài 5 phút sau đó hãy vào lệnh nếu thị trường ổn định.")
+    return "\n".join(lines)

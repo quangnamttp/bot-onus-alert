@@ -1,7 +1,7 @@
 import json
 import os
 
-DATA_FILE = "user_status.json"  # 📁 File lưu trạng thái từng user
+DATA_FILE = "user_status.json"
 
 def load_data():
     if not os.path.exists(DATA_FILE):

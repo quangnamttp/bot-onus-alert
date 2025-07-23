@@ -7,14 +7,14 @@ from messenger.registry_manager import (
 from messenger.signal_toggle import check_toggle_request
 from messenger.send_message import send_message
 
-# 📌 ID Messenger của bạn — để bot gửi xét duyệt riêng cho bạn
-ADMIN_ID = "100036886332606"  # ← Đừng sửa nếu đúng ID bạn tra được
+# 📌 ID Messenger cá nhân của bạn — để bot gửi xét duyệt riêng
+ADMIN_ID = "100036886332606"  # ← Đã chuẩn
 
 def handle_new_message(user_id, user_name, message_text):
     # 🔍 Kiểm tra trạng thái người dùng
     status = get_user_status(user_id)
 
-    # 🟢 Nếu là user mới — tiến hành đăng ký
+    # 🟢 Nếu là user mới — đăng ký ban đầu
     if not status:
         register_user(user_id, user_name)
         reply = (
@@ -25,7 +25,16 @@ def handle_new_message(user_id, user_name, message_text):
         send_message(user_id, reply)
         return
 
-    # ✅ Người dùng nhắn “Đồng ý” → gửi yêu cầu xét duyệt cho bạn
+    # 🛑 Nếu chưa được xét duyệt → chỉ phản hồi 1 lần
+    if not status.get("approved"):
+        fallback = (
+            "Bạn chưa được xét duyệt để nhận tín hiệu.\n"
+            "Vui lòng chờ xét duyệt từ [Trương Tấn Phương](https://www.facebook.com/quangnamttp) nhé ✅"
+        )
+        send_message(user_id, fallback)
+        return
+
+    # ✅ Người dùng nhắn “Đồng ý” → gửi yêu cầu xét duyệt đến bạn
     if message_text.strip() == "✅ Đồng ý":
         send_message(user_id,
             "📨 Yêu cầu của bạn đã được gửi đến [Trương Tấn Phương](https://www.facebook.com/quangnamttp) để xét duyệt."
@@ -57,15 +66,11 @@ def handle_new_message(user_id, user_name, message_text):
         send_message(user_id, f"🚫 Đã từ chối yêu cầu của {target_id}.")
         return
 
-    # 🔁 Bật/tắt tín hiệu
+    # 🔁 Bật/tắt tín hiệu nếu có
     toggle_response = check_toggle_request(user_id, message_text)
     if toggle_response:
         send_message(user_id, toggle_response)
         return
 
-    # 🧭 Mặc định nếu không khớp lệnh nào
-    fallback = (
-        "Bạn chưa được xét duyệt để nhận tín hiệu.\n"
-        "Vui lòng chờ xét duyệt từ [Trương Tấn Phương](https://www.facebook.com/quangnamttp) nhé ✅"
-    )
-    send_message(user_id, fallback)
+    # ✅ Nếu đã được duyệt mà không khớp lệnh nào → giữ im lặng hoặc phản hồi nhẹ
+    send_message(user_id, "🤖 Mình đã ghi nhận tin nhắn. Bạn đã được xét duyệt rồi!")

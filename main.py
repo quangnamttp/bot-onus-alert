@@ -15,6 +15,7 @@ from utils.config_loader import VERIFY_TOKEN, MY_USER_ID, PORT
 from utils.signal_switch import toggle_signal, is_signal_enabled
 
 import schedule, threading, time, logging
+from datetime import datetime
 
 app = Flask(__name__)
 logging.basicConfig(
@@ -50,6 +51,7 @@ def receive_message():
             toggle_signal("on")
             send_message(sender_id, "✅ Cofure đã bật tín hiệu. Radar đang hoạt động.")
             send_trade_signals(sender_id)              # ← Gửi ngay tín hiệu
+            send_macro_news(sender_id, date="today", use_template=True)  # ← Gửi lịch ngay
 
         elif "tắt tín hiệu" in text or text == "off":
             toggle_signal("off")
@@ -76,44 +78,46 @@ def receive_message():
 
 def start_scheduler():
     logging.info("🟢 start_scheduler() has started")
+    logging.info("🕒 Giờ hệ thống hiện tại: %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     # 06:00 Morning report
     def job_morning():
+        logging.info("🌞 [Scheduler] Kích báo cáo sáng")
         if is_signal_enabled():
-            logging.info("🌞 Running send_morning_report()")
             send_morning_report(MY_USER_ID)
     schedule.every().day.at("06:00").do(job_morning)
-    logging.info("🔧 Scheduled morning report at 06:00")
 
     # 07:00 Macro news
     def job_macro():
+        logging.info("📅 [Scheduler] Kích lịch vĩ mô")
         if is_signal_enabled():
-            logging.info("📰 Running send_macro_news()")
             send_macro_news(MY_USER_ID, use_template=True)
     schedule.every().day.at("07:00").do(job_macro)
-    logging.info("🔧 Scheduled macro news at 07:00")
 
     # 06:00–21:45: trade signals mỗi 15 phút
     def job_trade(ts):
+        logging.info(f"📡 [Scheduler] Kích gửi tín hiệu tại {ts}")
         if is_signal_enabled():
-            logging.info(f"📡 Running send_trade_signals() at {ts}")
             send_trade_signals(MY_USER_ID)
     for h in range(6, 22):
         for m in [0, 15, 30, 45]:
             ts = f"{h:02d}:{m:02d}"
             schedule.every().day.at(ts).do(lambda ts=ts: job_trade(ts))
-            logging.info(f"🔧 Scheduled trade signal at {ts}")
 
     # 22:00 Summary report
     def job_summary():
+        logging.info("🌙 [Scheduler] Kích tổng kết tối")
         if is_signal_enabled():
-            logging.info("🌙 Running send_summary_report()")
             send_summary_report(MY_USER_ID)
     schedule.every().day.at("22:00").do(job_summary)
-    logging.info("🔧 Scheduled summary report at 22:00")
 
+    # Vòng lặp pending + heartbeat
+    last_log = time.time()
     while True:
         schedule.run_pending()
+        if time.time() - last_log > 30:
+            logging.info("⏳ Vòng lặp scheduler đang hoạt động bình thường")
+            last_log = time.time()
         time.sleep(1)
 
 
@@ -124,8 +128,6 @@ def start_emergency_radar():
 
 if __name__ == "__main__":
     logging.info("🚀 Cofure Bot khởi động")
-
-    # Test gửi tin khởi động
     send_message(MY_USER_ID, "✅ Cofure đã khởi động thành công và đang chờ tín hiệu.")
 
     # Khởi radar khẩn cấp

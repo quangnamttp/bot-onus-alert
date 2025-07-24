@@ -40,11 +40,11 @@ def receive_message():
         text = messaging_event["message"]["text"].lower()
         sender_id = messaging_event["sender"]["id"]
 
-        if "bật tín hiệu,bật" in text or "bật radar" in text or text == "on":
+        if "bật tín hiệu" in text or "bật radar" in text or text == "on":
             toggle_signal("on")
             send_message(sender_id, "✅ Bot đã **bật tín hiệu**. Radar Cofure đang hoạt động.")
 
-        elif "tắt tín hiệu,tắt" in text or "tắt radar" in text or text == "off":
+        elif "tắt tín hiệu" in text or "tắt radar" in text or text == "off":
             toggle_signal("off")
             send_message(sender_id, "🔕 Bot đã **tắt tín hiệu**. Radar Cofure sẽ ngưng phát sóng.")
 

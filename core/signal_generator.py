@@ -1,11 +1,11 @@
-# cofure_bot/core/signal_generator.py
-
+import logging
 from marketdata.futures_tracker import get_futures_data
 from core.strength_classifier import classify_strength
 from core.pre_breakout_detector import detect_pattern
 
 def generate_signals():
     coin_data = get_futures_data()
+    logging.info(f"📦 Dữ liệu nhận được từ market: {len(coin_data)} coins")
     signals = []
 
     for coin in coin_data:
@@ -14,20 +14,25 @@ def generate_signals():
         rsi = coin["rsi"]
         spread = coin["spread"]
         price = coin["price"]
-        pattern = detect_pattern(coin["symbol"])
+        symbol = coin["symbol"]
+        pattern = detect_pattern(symbol)
         
         strength, label = classify_strength(fund, vol, rsi, spread)
 
+        # Log từng coin để kiểm tra lý do bị loại
+        logging.info(f"🔍 {symbol} → fund={fund}, rsi={rsi}, pattern={pattern}")
+
         direction = None
-        if fund > 0.005 and rsi > 54 and pattern in ["tam giác tăng", "nền phẳng"]:
+        if fund > 0.004 and rsi > 52 and pattern in ["tam giác tăng", "nền phẳng", "breakout"]:
             direction = "Long"
-        elif fund < -0.005 and rsi < 45 and pattern in ["vai đầu vai", "nền giảm"]:
+        elif fund < -0.004 and rsi < 48 and pattern in ["vai đầu vai", "nền giảm", "cờ giảm"]:
             direction = "Short"
         else:
+            logging.info(f"⛔ Loại {symbol} — không thỏa điều kiện")
             continue
 
         signals.append({
-            "symbol": coin["symbol"],
+            "symbol": symbol,
             "order_type": "Market",
             "strategy": "Scalping" if len(signals) < 3 else "Swing",
             "side": direction,
@@ -44,7 +49,10 @@ def generate_signals():
             "session_time": "Real-time"
         })
 
+        logging.info(f"📡 Tín hiệu tạo thành: {symbol} {direction} ✅")
+
         if len(signals) == 5:
             break
 
+    logging.info(f"📊 Tổng số tín hiệu được chọn: {len(signals)}")
     return signals

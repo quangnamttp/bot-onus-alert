@@ -3,4 +3,3 @@ gunicorn
 schedule
 python-dotenv
 requests
-zoneinfo; python_version >= "3.9"

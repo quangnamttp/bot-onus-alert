@@ -6,7 +6,7 @@ from scheduler.news_schedule import send_macro_news
 from scheduler.summary_report import send_summary_report
 from scheduler.emergency_trigger import run_emergency_loop
 from utils.config_loader import VERIFY_TOKEN, MY_USER_ID
-from utils.signal_switch import toggle_signal, is_signal_enabled  # ⬅️ mới thêm
+from utils.signal_switch import toggle_signal, is_signal_enabled
 import schedule, threading, time, logging
 
 app = Flask(__name__)
@@ -40,15 +40,18 @@ def receive_message():
         text = messaging_event["message"]["text"].lower()
         sender_id = messaging_event["sender"]["id"]
 
-        if text == "on":
+        if "bật tín hiệu" in text or "bật radar" in text or text == "on":
             toggle_signal("on")
             send_message(sender_id, "✅ Bot đã **bật tín hiệu**. Radar Cofure đang hoạt động.")
-        elif text == "off":
+
+        elif "tắt tín hiệu" in text or "tắt radar" in text or text == "off":
             toggle_signal("off")
             send_message(sender_id, "🔕 Bot đã **tắt tín hiệu**. Radar Cofure sẽ ngưng phát sóng.")
-        elif text == "trạng thái":
+
+        elif "trạng thái" in text:
             status = "bật" if is_signal_enabled() else "tắt"
             send_message(sender_id, f"📡 Radar Cofure hiện đang **{status}**.")
+
         else:
             send_message(sender_id, f"📩 Cofure nhận được: “{text}”")
 

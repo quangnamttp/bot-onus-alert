@@ -7,7 +7,7 @@ from messenger.send_message import send_template_message
 from utils.signal_switch import is_signal_enabled
 
 # ⚠️ Giả định: bạn có hàm fetch_macro_events(date) → trả về list[dict]
-from core.news_data_source import fetch_macro_events
+from macro.forex_factory_fetcher import fetch_macro_news as fetch_macro_events
 
 def send_macro_news(user_id, date="today", date_range=None, use_template=True):
     try:

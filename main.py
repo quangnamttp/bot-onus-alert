@@ -14,7 +14,7 @@ from scheduler.emergency_trigger import run_emergency_loop
 from utils.config_loader import VERIFY_TOKEN, MY_USER_ID, PORT, TZ
 from utils.signal_switch import toggle_signal, is_signal_enabled
 
-import schedule, threading, time, logging
+import schedule, threading, time, logging, requests
 from datetime import datetime
 
 app = Flask(__name__)
@@ -76,6 +76,24 @@ def receive_message():
     return "OK", 200
 
 
+@app.route("/ping", methods=["GET"])
+def ping():
+    logging.info("📶 Đã nhận ping giữ bot tỉnh")
+    return "pong", 200
+
+
+def keep_alive_ping():
+    def loop():
+        while True:
+            try:
+                requests.get(f"http://localhost:{PORT}/ping")
+                logging.info("📶 Tự ping nội bộ giữ bot hoạt động")
+            except:
+                logging.warning("❌ Ping nội bộ không thành công")
+            time.sleep(300)  # Mỗi 5 phút
+    threading.Thread(target=loop, daemon=True).start()
+
+
 def start_scheduler():
     logging.info("🟢 Scheduler đã bắt đầu chạy")
     logging.info("🕒 Giờ Việt Nam hiện tại: %s", datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S"))
@@ -124,7 +142,9 @@ def start_emergency_radar():
 if __name__ == "__main__":
     logging.info("🚀 Cofure Bot khởi động")
     send_message(MY_USER_ID, "✅ Cofure đã khởi động thành công và đang chờ tín hiệu.")
+
     start_emergency_radar()
+    keep_alive_ping()
 
     sched_thread = threading.Thread(target=start_scheduler, daemon=True)
     sched_thread.start()

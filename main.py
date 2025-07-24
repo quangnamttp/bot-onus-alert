@@ -11,7 +11,7 @@ from scheduler.morning_report import send_morning_report
 from scheduler.news_schedule import send_macro_news
 from scheduler.summary_report import send_summary_report
 from scheduler.emergency_trigger import run_emergency_loop
-from utils.config_loader import VERIFY_TOKEN, MY_USER_ID, PORT
+from utils.config_loader import VERIFY_TOKEN, MY_USER_ID, PORT, TZ
 from utils.signal_switch import toggle_signal, is_signal_enabled
 
 import schedule, threading, time, logging
@@ -50,8 +50,8 @@ def receive_message():
         if "bật tín hiệu" in text or text == "on":
             toggle_signal("on")
             send_message(sender_id, "✅ Cofure đã bật tín hiệu. Radar đang hoạt động.")
-            send_trade_signals(sender_id)              # ← Gửi ngay tín hiệu
-            send_macro_news(sender_id, date="today", use_template=True)  # ← Gửi lịch ngay
+            send_trade_signals(sender_id)
+            send_macro_news(sender_id, date="today", use_template=True)
 
         elif "tắt tín hiệu" in text or text == "off":
             toggle_signal("off")
@@ -77,26 +77,23 @@ def receive_message():
 
 
 def start_scheduler():
-    logging.info("🟢 start_scheduler() has started")
-    logging.info("🕒 Giờ hệ thống hiện tại: %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("🟢 Scheduler đã bắt đầu chạy")
+    logging.info("🕒 Giờ Việt Nam hiện tại: %s", datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S"))
 
-    # 06:00 Morning report
     def job_morning():
-        logging.info("🌞 [Scheduler] Kích báo cáo sáng")
+        logging.info("🌞 [Scheduler] Gửi báo cáo sáng")
         if is_signal_enabled():
             send_morning_report(MY_USER_ID)
     schedule.every().day.at("06:00").do(job_morning)
 
-    # 07:00 Macro news
     def job_macro():
-        logging.info("📅 [Scheduler] Kích lịch vĩ mô")
+        logging.info("📅 [Scheduler] Gửi lịch vĩ mô")
         if is_signal_enabled():
             send_macro_news(MY_USER_ID, use_template=True)
     schedule.every().day.at("07:00").do(job_macro)
 
-    # 06:00–21:45: trade signals mỗi 15 phút
     def job_trade(ts):
-        logging.info(f"📡 [Scheduler] Kích gửi tín hiệu tại {ts}")
+        logging.info(f"📡 [Scheduler] Gửi tín hiệu phiên tại {ts}")
         if is_signal_enabled():
             send_trade_signals(MY_USER_ID)
     for h in range(6, 22):
@@ -104,19 +101,17 @@ def start_scheduler():
             ts = f"{h:02d}:{m:02d}"
             schedule.every().day.at(ts).do(lambda ts=ts: job_trade(ts))
 
-    # 22:00 Summary report
     def job_summary():
-        logging.info("🌙 [Scheduler] Kích tổng kết tối")
+        logging.info("🌙 [Scheduler] Gửi báo cáo tổng kết")
         if is_signal_enabled():
             send_summary_report(MY_USER_ID)
     schedule.every().day.at("22:00").do(job_summary)
 
-    # Vòng lặp pending + heartbeat
     last_log = time.time()
     while True:
         schedule.run_pending()
         if time.time() - last_log > 30:
-            logging.info("⏳ Vòng lặp scheduler đang hoạt động bình thường")
+            logging.info("⏳ Scheduler vẫn đang hoạt động ổn định")
             last_log = time.time()
         time.sleep(1)
 
@@ -129,14 +124,10 @@ def start_emergency_radar():
 if __name__ == "__main__":
     logging.info("🚀 Cofure Bot khởi động")
     send_message(MY_USER_ID, "✅ Cofure đã khởi động thành công và đang chờ tín hiệu.")
-
-    # Khởi radar khẩn cấp
     start_emergency_radar()
 
-    # Khởi scheduler nền
     sched_thread = threading.Thread(target=start_scheduler, daemon=True)
     sched_thread.start()
-    logging.info(f"🧵 Scheduler thread is_alive: {sched_thread.is_alive()}")
+    logging.info(f"🧵 Thread scheduler đang hoạt động: {sched_thread.is_alive()}")
 
-    # Chạy Flask
     app.run(host="0.0.0.0", port=PORT)

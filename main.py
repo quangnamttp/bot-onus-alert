@@ -52,6 +52,15 @@ def receive_message():
             status = "bật" if is_signal_enabled() else "tắt"
             send_message(sender_id, f"📡 Radar Cofure hiện đang **{status}**.")
 
+        elif "lịch hôm nay" in text or "lịch kinh tế hôm nay" in text or "lịch kinh tế" in text:
+            send_macro_news(sender_id, date="today")
+
+        elif "lịch ngày mai" in text or "kinh tế ngày mai" in text:
+            send_macro_news(sender_id, date="tomorrow")
+
+        elif "lịch cả tuần" in text or "lịch tuần" in text:
+            send_macro_news(sender_id, date_range="week")
+
         else:
             send_message(sender_id, f"📩 Cofure nhận được: “{text}”")
 

@@ -1,5 +1,6 @@
 flask
+gunicorn
+schedule
 python-dotenv
 requests
-schedule
-gunicorn
+zoneinfo; python_version >= "3.9"

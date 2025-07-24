@@ -1,5 +1,3 @@
-# cofure_bot/main.py
-
 from flask import Flask, request
 from messenger.send_message import (
     send_message,
@@ -24,56 +22,65 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
-
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def home():
     return "✅ Cofure Bot đang hoạt động 🎯", 200
 
 
 @app.route("/webhook", methods=["GET"])
 def verify():
-    token    = request.args.get("hub.verify_token")
+    token = request.args.get("hub.verify_token")
     challenge = request.args.get("hub.challenge")
+    logging.info(f"🔍 GET webhook xác minh: nhận token={token}, mong đợi={VERIFY_TOKEN}")
     return challenge if token == VERIFY_TOKEN else "Sai token", 403
 
 
 @app.route("/webhook", methods=["POST"])
 def receive_message():
-    data = request.get_json()
-    logging.info(f"📩 Nhận Messenger: {data}")
-    event = data["entry"][0]["messaging"][0]
+    try:
+        data = request.get_json(force=True)
+        logging.info(f"📩 Nhận Messenger POST: {data}")
 
-    if "message" in event and "text" in event["message"]:
-        text      = event["message"]["text"].lower().strip()
-        sender_id = event["sender"]["id"]
+        event = data.get("entry", [{}])[0].get("messaging", [{}])[0]
+        sender_id = event.get("sender", {}).get("id")
+        message = event.get("message", {}).get("text", "").lower().strip()
 
-        if "bật tín hiệu" in text or text == "on":
-            toggle_signal("on")
-            send_message(sender_id, "✅ Cofure đã bật tín hiệu. Radar đang hoạt động.")
-            send_trade_signals(sender_id)
-            send_macro_news(sender_id, date="today", use_template=True)
+        if not sender_id:
+            logging.warning("⚠️ POST webhook thiếu sender_id")
+            return "OK", 200
 
-        elif "tắt tín hiệu" in text or text == "off":
-            toggle_signal("off")
-            send_message(sender_id, "🔕 Cofure đã tắt tín hiệu. Bot ngưng hoạt động tự động.")
+        if message:
+            if "bật tín hiệu" in message or message == "on":
+                toggle_signal("on")
+                send_message(sender_id, "✅ Cofure đã bật tín hiệu. Radar đang hoạt động.")
+                send_trade_signals(sender_id)
+                send_macro_news(sender_id, date="today", use_template=True)
 
-        elif "trạng thái" in text:
-            status = "bật 🟢" if is_signal_enabled() else "tắt 🔴"
-            send_message(sender_id, f"📡 Radar Cofure đang ở chế độ {status}.")
+            elif "tắt tín hiệu" in message or message == "off":
+                toggle_signal("off")
+                send_message(sender_id, "🔕 Cofure đã tắt tín hiệu. Bot ngưng hoạt động tự động.")
 
-        elif "lịch hôm nay" in text:
-            send_macro_news(sender_id, date="today", use_template=True)
+            elif "trạng thái" in message:
+                status = "bật 🟢" if is_signal_enabled() else "tắt 🔴"
+                send_message(sender_id, f"📡 Radar Cofure đang ở chế độ {status}.")
 
-        elif "lịch ngày mai" in text:
-            send_macro_news(sender_id, date="tomorrow", use_template=True)
+            elif "lịch hôm nay" in message:
+                send_macro_news(sender_id, date="today", use_template=True)
 
-        elif "lịch tuần" in text or "lịch cả tuần" in text:
-            send_macro_news(sender_id, date_range="week", use_template=True)
+            elif "lịch ngày mai" in message:
+                send_macro_news(sender_id, date="tomorrow", use_template=True)
 
-        else:
-            send_message(sender_id, f"📩 Cofure nhận được: “{text}”")
+            elif "lịch tuần" in message or "lịch cả tuần" in message:
+                send_macro_news(sender_id, date_range="week", use_template=True)
 
-    return "OK", 200
+            else:
+                send_message(sender_id, f"📩 Cofure nhận được: “{message}”")
+
+        return "OK", 200
+
+    except Exception as e:
+        logging.exception(f"❌ Lỗi xử lý POST Messenger: {e}")
+        return "OK", 200
 
 
 @app.route("/ping", methods=["GET"])
@@ -87,16 +94,16 @@ def keep_alive_ping():
         while True:
             try:
                 requests.get(f"http://localhost:{PORT}/ping")
-                logging.info("📶 Tự ping nội bộ giữ bot hoạt động")
+                logging.info("📶 Tự ping giữ bot hoạt động")
             except:
-                logging.warning("❌ Ping nội bộ không thành công")
-            time.sleep(300)  # Mỗi 5 phút
+                logging.warning("❌ Ping không thành công")
+            time.sleep(300)
     threading.Thread(target=loop, daemon=True).start()
 
 
 def start_scheduler():
-    logging.info("🟢 Scheduler đã bắt đầu chạy")
-    logging.info("🕒 Giờ Việt Nam hiện tại: %s", datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S"))
+    logging.info("🟢 Scheduler bắt đầu chạy")
+    logging.info("🕒 Giờ VN hiện tại: %s", datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S"))
 
     def job_morning():
         logging.info("🌞 [Scheduler] Gửi báo cáo sáng")
@@ -111,7 +118,7 @@ def start_scheduler():
     schedule.every().day.at("07:00").do(job_macro)
 
     def job_trade(ts):
-        logging.info(f"📡 [Scheduler] Gửi tín hiệu phiên tại {ts}")
+        logging.info(f"📡 [Scheduler] Gửi tín hiệu lúc {ts}")
         if is_signal_enabled():
             send_trade_signals(MY_USER_ID)
     for h in range(6, 22):
@@ -129,7 +136,7 @@ def start_scheduler():
     while True:
         schedule.run_pending()
         if time.time() - last_log > 30:
-            logging.info("⏳ Scheduler vẫn đang hoạt động ổn định")
+            logging.info("⏳ Scheduler vẫn ổn định")
             last_log = time.time()
         time.sleep(1)
 
@@ -142,12 +149,11 @@ def start_emergency_radar():
 if __name__ == "__main__":
     logging.info("🚀 Cofure Bot khởi động")
     send_message(MY_USER_ID, "✅ Cofure đã khởi động thành công và đang chờ tín hiệu.")
-
     start_emergency_radar()
     keep_alive_ping()
 
     sched_thread = threading.Thread(target=start_scheduler, daemon=True)
     sched_thread.start()
-    logging.info(f"🧵 Thread scheduler đang hoạt động: {sched_thread.is_alive()}")
+    logging.info(f"🧵 Thread scheduler hoạt động: {sched_thread.is_alive()}")
 
     app.run(host="0.0.0.0", port=PORT)

@@ -59,13 +59,16 @@ def receive_message():
                 send_message(sender_id, f"📡 Radar đang ở chế độ {status}.")
 
             elif "lịch hôm nay" in message:
-                send_macro_news(sender_id, date="today", use_template=True)
+                if not send_macro_news(sender_id, date="today", use_template=True):
+                    send_message(sender_id, "📭 Hôm nay không có lịch hoặc lỗi khi kết nối dữ liệu.")
 
             elif "lịch ngày mai" in message:
-                send_macro_news(sender_id, date="tomorrow", use_template=True)
+                if not send_macro_news(sender_id, date="tomorrow", use_template=True):
+                    send_message(sender_id, "📭 Ngày mai không có lịch hoặc lỗi dữ liệu.")
 
             elif "lịch tuần" in message:
-                send_macro_news(sender_id, date_range="week", use_template=True)
+                if not send_macro_news(sender_id, date_range="week", use_template=True):
+                    send_message(sender_id, "📭 Tuần này không có lịch hoặc lỗi dữ liệu.")
 
             else:
                 send_message(sender_id, f"📨 Cofure nhận: “{message}”")

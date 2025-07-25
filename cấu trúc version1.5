@@ -15,7 +15,8 @@ cofure_bot/
 ├── utils/                      # 🔧 Hàm phụ trợ
 │   ├── config_loader.py            # Load TOKEN, VERIFY từ môi trường
 │   ├── vnd_formatter.py            # Format giá VNĐ
-│
+│   |--signal_switch.py
+|
 ├── messenger/                  # 📬 Gửi tin qua Messenger
 │   └── send_message.py             # Gọi Meta API bằng TOKEN
 │
@@ -51,6 +52,8 @@ cofure_bot/
 │   ├── signal_log.json             # Lưu các lệnh đã gửi
 │   ├── macro_news.json             # Tin vĩ mô đã phản hồi
 │   └── coin_list.json              # Danh sách các coin cần theo dõi
+|    |---emergency_sent.json
+|     ---news_history.json
 
 
 

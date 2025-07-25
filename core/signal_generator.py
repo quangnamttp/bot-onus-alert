@@ -3,9 +3,9 @@ from marketdata.futures_tracker import get_futures_data
 from core.strength_classifier import classify_strength
 from core.pre_breakout_detector import detect_pattern
 
-def generate_signals():
+def generate_signals(max_signals=5):
     coin_data = get_futures_data()
-    logging.info(f"📦 Dữ liệu nhận được từ market: {len(coin_data)} coins")
+    logging.info(f"📦 Dữ liệu nhận được: {len(coin_data)} coins")
     signals = []
 
     for coin in coin_data:
@@ -16,11 +16,10 @@ def generate_signals():
         price = coin["price"]
         symbol = coin["symbol"]
         pattern = detect_pattern(symbol)
-        
+
         strength, label = classify_strength(fund, vol, rsi, spread)
 
-        # Log từng coin để kiểm tra lý do bị loại
-        logging.info(f"🔍 {symbol} → fund={fund}, rsi={rsi}, pattern={pattern}")
+        logging.info(f"🔍 {symbol} → fund={fund}, rsi={rsi}, pattern={pattern}, spread={spread}")
 
         direction = None
         if fund > 0.004 and rsi > 52 and pattern in ["tam giác tăng", "nền phẳng", "breakout"]:
@@ -28,10 +27,14 @@ def generate_signals():
         elif fund < -0.004 and rsi < 48 and pattern in ["vai đầu vai", "nền giảm", "cờ giảm"]:
             direction = "Short"
         else:
-            logging.info(f"⛔ Loại {symbol} — không thỏa điều kiện")
+            logging.info(f"⛔ Loại {symbol} — không thỏa điều kiện logic")
             continue
 
-        signals.append({
+        if abs(spread) > 2.0:
+            logging.info(f"⛔ Loại {symbol} — spread quá cao ({spread})")
+            continue
+
+        signal = {
             "symbol": symbol,
             "order_type": "Market",
             "strategy": "Scalping" if len(signals) < 3 else "Swing",
@@ -47,12 +50,16 @@ def generate_signals():
             "strength": strength,
             "strength_label": label,
             "session_time": "Real-time"
-        })
+        }
 
+        signals.append(signal)
         logging.info(f"📡 Tín hiệu tạo thành: {symbol} {direction} ✅")
 
-        if len(signals) == 5:
+        if len(signals) >= max_signals:
             break
+
+    if not signals:
+        logging.warning("🚨 Không có tín hiệu nào được tạo — kiểm tra lại dữ liệu & điều kiện lọc!")
 
     logging.info(f"📊 Tổng số tín hiệu được chọn: {len(signals)}")
     return signals

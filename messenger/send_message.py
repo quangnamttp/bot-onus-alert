@@ -1,5 +1,3 @@
-# cofure_bot/messenger/send_message.py
-
 import requests
 import logging
 from utils.config_loader import PAGE_ACCESS_TOKEN
@@ -9,7 +7,7 @@ MAX_RETRIES = 2
 
 def _post(payload):
     """
-    Internal helper: gửi HTTP request với retry + timeout
+    Internal helper: gửi HTTP request với retry + timeout, có log chi tiết lỗi.
     """
     url    = "https://graph.facebook.com/v15.0/me/messages"
     params = {"access_token": PAGE_ACCESS_TOKEN}
@@ -22,6 +20,8 @@ def _post(payload):
                 json=payload,
                 timeout=DEFAULT_TIMEOUT
             )
+            if not resp.ok:
+                logging.warning("⚠️ Facebook API trả lỗi: %s", resp.text)
             resp.raise_for_status()
             data = resp.json()
             logging.info("✅ Sent OK: %s", data)
@@ -62,6 +62,10 @@ def send_template_message(
     • template_payload: dict template_type + elements/buttons
     • quick_replies: list of quick reply dicts
     """
+    if not text and not template_payload:
+        logging.error("❌ Gửi template mà không có text hoặc payload nào.")
+        return None
+
     message = {}
     if text:
         message["text"] = text
@@ -97,6 +101,7 @@ def send_button_template(recipient_id, text, buttons, quick_replies=None, **kwar
     }
     return send_template_message(
         recipient_id=recipient_id,
+        text=text,
         template_payload=payload,
         quick_replies=quick_replies,
         **kwargs

@@ -67,7 +67,8 @@ def send_template_message(
     persona_id=None
 ):
     """
-    Gửi template nâng cao (generic, button...) kèm optional text & quick replies.
+    Gửi template nâng cao (generic, button...) kèm optional quick replies.
+    Facebook chỉ cho phép: 'text' hoặc 'attachment', không đồng thời cả hai.
     """
     if not recipient_id:
         logging.error("❌ recipient_id trống — không thể gửi template")
@@ -78,13 +79,14 @@ def send_template_message(
         return None
 
     message = {}
-    if text:
-        message["text"] = text
 
-    message["attachment"] = {
-        "type": "template",
-        "payload": template_payload or {}
-    }
+    if template_payload:
+        message["attachment"] = {
+            "type": "template",
+            "payload": template_payload
+        }
+    elif text:
+        message["text"] = text
 
     if quick_replies:
         message["quick_replies"] = quick_replies
@@ -104,8 +106,8 @@ def send_button_template(recipient_id, text, buttons, quick_replies=None, **kwar
     """
     Shortcut: gửi button template đơn giản.
     """
-    if not text or not buttons:
-        logging.error("❌ Button Template cần cả 'text' và 'buttons'")
+    if not buttons:
+        logging.error("❌ Button Template phải có danh sách 'buttons'")
         return None
 
     payload = {
@@ -116,7 +118,6 @@ def send_button_template(recipient_id, text, buttons, quick_replies=None, **kwar
 
     return send_template_message(
         recipient_id=recipient_id,
-        text=text,
         template_payload=payload,
         quick_replies=quick_replies,
         **kwargs
